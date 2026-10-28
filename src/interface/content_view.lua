@@ -1,6 +1,7 @@
 -- The plugin's page, with the settings for how the area titles look and sound.
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
+local world_tracker = require("src/tracker/world_tracker")
 
 local content_view = {}
 
@@ -136,7 +137,13 @@ function content_view.start()
         })
 
         view:AddSimpleButton("Preview", function ()
-            area_title.preview()
+            -- Where the player is, or the example when that's nowhere named.
+            local name, subtitle, sprite = world_tracker.current_title()
+            if name then
+                area_title.show(name, subtitle, sprite)
+            else
+                area_title.preview()
+            end
         end)
     end)
 end
