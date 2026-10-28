@@ -25,7 +25,7 @@ On the plugin's page (its ribbon icon):
 
 New areas, better borders and fixes to the ones there are very welcome. All of them are in [`src/game/world_areas.lua`](src/game/world_areas.lua). Positions are **world tiles** (a map square is 64 of them), the `x` and `z` of the player's `coordGrid`.
 
-There are three kinds:
+There are three kinds (TODO - improve area definitions):
 
 - **Towns** are circles: a middle and a radius in tiles. The title shows when you're inside the circle, and you only count as having left at 1.2 times the radius, so walking along the edge doesn't show it again and again. Where circles overlap, the town whose middle is nearest wins.
 
