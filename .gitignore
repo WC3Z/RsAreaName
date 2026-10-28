@@ -3,3 +3,5 @@ Area-Names/
 debug/
 .idea/
 build.local.sh
+
+.luarc.json
