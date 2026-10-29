@@ -1,0 +1,81 @@
+diff --git a/main.lua b/main.lua
+index 31f7bdf..3756764 100644
+--- a/main.lua
++++ b/main.lua
+@@ -84,6 +84,7 @@ local overviewBounds = { x = 1856, z = 1344, w = 3008, h = 3200 }
+ local sprites, labels = {}, {}
+ local cx, cz, scale, follow = 3222, 3218, 2, true
+ local player, drag, lastError = nil, nil, nil
++local areaNamesOverlay
+ local dirty, retry = true, 0
+ local lastTerrainView
+ local Visual = require("visual_updates")
+@@ -468,6 +469,9 @@ local function draw()
+         nearbyNPCs:SetViewport(cx, cz, scale, w, h, showMapIcons and not filterOptions.hideLiveNPCs)
+     end
+     referencePins:Draw(selectedMonster, activeArea.id, cx, cz, scale, w, h, appearance)
++    if areaNamesOverlay then
++        areaNamesOverlay:Draw(AreaNames, activeArea.id, cx, cz, scale, w, h)
++    end
+     if hoverCard then
+         hoverCard:SetPins(referencePins.hits)
+     end
+@@ -1002,6 +1006,8 @@ local function create()
+     referenceLayer.clickthrough = true
+     referencePins = require("reference_pins").new(referenceLayer)
+     referencePins:SetOpacity(movementOpacity.factor)
++    -- LOCAL DEBUG: Area Names' borders, when it's loaded as an optional dependency.
++    areaNamesOverlay = require("area_names_overlay").new(referenceLayer)
+     marker = Pin.new(view, true)
+     local nearbyLayer = ui.Layer.new(view)
+     nearbyLayer:SetSize(0, 0, 1, 1)
+@@ -1019,6 +1025,15 @@ local function create()
+     -- are local to this component.
+     input:Subscribe(ui.Hook.ONCLICK, function(_, x, y)
+         filterMenu:Close()
++        -- LOCAL DEBUG: Ctrl+click traces Area Names outlines instead of panning.
++        if areaNamesOverlay and AreaNames and x and Keyboard.IsControlDown() then
++            local mx, mz = Map.unproject(x, y, cx, cz, scale, view.width, view.height)
++            if areaNamesOverlay:Click(activeArea.id, mx, mz) then
++                drag = nil
++                dirty = true
++                return false
++            end
++        end
+         if
+             nearbyNPCs
+             and hoverCard
+@@ -1320,6 +1335,10 @@ Event.Logic.Subscribe("better_world_map_logic", function()
+                 cz = player.z
+             end
+         end
++        -- LOCAL DEBUG: redraw when Area Names' ticked areas or corners change.
++        if areaNamesOverlay and areaNamesOverlay:Changed(AreaNames) then
++            dirty = true
++        end
+         if dirty and not window.root.hidden then
+             draw()
+         end
+@@ -1419,6 +1438,7 @@ function PluginShutdown()
+     if referencePins then
+         referencePins:Destroy()
+         referencePins = nil
++        areaNamesOverlay = nil
+     end
+     if nearbyNPCs then
+         nearbyNPCs:Shutdown()
+diff --git a/plugin.json b/plugin.json
+index 075db6b..77e59e4 100644
+--- a/plugin.json
++++ b/plugin.json
+@@ -4,7 +4,9 @@
+   "requiredDependencies": {
+     "prettyui": 6398181
+   },
+-  "optionalDependencies": {},
++  "optionalDependencies": {
++    "AreaNames": "Area-Names"
++  },
+   "requiredPermissions": [],
+   "optionalPermissions": []
+ }
