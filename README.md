@@ -13,7 +13,7 @@ A RuneScape 3 plugin that announces where you are, like the area titles in the S
 
 ## Settings
 
-On the plugin's page (its ribbon icon):
+On the plugin's page (its ribbon icon), on the **Settings** tab:
 
 - **Font**, **Font size** and **Colour** of the title. Fonts only come in fixed sizes, so the size is greyed out for fonts that have just one.
 - **Show shields**: the lodestone shield above the name.
@@ -21,31 +21,75 @@ On the plugin's page (its ribbon icon):
 - **Repeat titles after (minutes)**: how long before an area's title shows again when you walk back in. 0 shows it every time.
 - **Preview**: shows the title for where you are now, or an example when that's nowhere named.
 
+The **Map borders** tab is a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
+
 ## Contributing areas
 
 New areas, better borders and fixes to the ones there are very welcome. All of them are in [`src/game/world_areas.lua`](src/game/world_areas.lua). Positions are **world tiles** (a map square is 64 of them), the `x` and `z` of the player's `coordGrid`.
 
-There are three kinds (TODO - improve area definitions):
+There are three kinds:
 
-- **Towns** are circles: a middle and a radius in tiles. The title shows when you're inside the circle, and you only count as having left at 1.2 times the radius, so walking along the edge doesn't show it again and again. Where circles overlap, the town whose middle is nearest wins.
-
-  ```lua
-  { name = "Varrock", subtitle = "Capital of Misthalin", sprite = "THAS_SHIELD_VARROCK", at = { 3213, 3428 }, radius = 55 },
-  ```
-
-- **Kingdoms** are one or more rectangles, each `{ min x, min z, max x, max z }`. The first kingdom in the list with a rectangle you're in wins, so put a smaller kingdom before a bigger one that overlaps it.
+- **Towns** are outlines: their corners in order, as `{ x, z }` tiles. Towns nobody has traced yet are circles instead: a middle and a radius in tiles. The title shows when you're inside, and you only count as having left 5 tiles outside, so walking along the edge doesn't show it again and again. Where towns overlap, the smallest wins, so the Grand Exchange shows inside Varrock.
 
   ```lua
-  { name = "Misthalin", bounds = { { 3045, 3136, 3269, 3519 }, { 3270, 3320, 3390, 3519 } } },
+  { name = "Varrock", subtitle = "Capital of Misthalin", sprite = "THAS_SHIELD_VARROCK", points = { { 3175, 3380 }, { 3270, 3380 }, { 3270, 3505 }, { 3175, 3505 } } },
+  { name = "Grand Exchange", at = { 3165, 3487 }, radius = 20 },
   ```
 
-- **Places** are areas away from the main world, made of rectangles like kingdoms: worlds of their own (like War's Retreat) and the places instances are copied from (like the Telos fight). They come before towns and kingdoms.
+- **Kingdoms** are an outline (`points`, like a town's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
+
+  ```lua
+  { name = "Karamja", sprite = "THAS_SHIELD_KARAMJA", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
+  ```
+
+- **Places** are areas away from the main world, an outline or rectangles like kingdoms: worlds of their own (like War's Retreat) and the places instances are copied from (like the Telos fight). They come before towns and kingdoms.
 
   ```lua
   { name = "War's Retreat", bounds = { { 3200, 10112, 3327, 10175 } } },
   ```
 
 `subtitle` and `sprite` are optional for all three. `sprite` is a name from the game's sprites (`id.Sprite`); the lodestone shields are the `THAS_SHIELD_...` ones.
+
+## Mapping areas
+
+All kingdoms are traced outlines; most towns are still circles waiting for theirs. These are the tools for tracing and checking them.
+
+### Seeing the borders
+
+The plugin's **Map borders** tab is for this. Tick **Show area borders**, then tick the kingdoms, places and towns you want to see. None are ticked at first, as drawing them all is slow. Each area is drawn in its own colour, the same one every time:
+
+- on the ground around you, in the main world (not in instances);
+- on [Better World Map](#better-world-map)'s map, if you've set it up as below, with each area's name at its middle.
+
+### Better World Map
+
+Better World Map by jadefx is a world map plugin. With a few additions, your copy of it draws Area Names' borders on its map and lets you trace an outline by clicking on it. The additions, and how to set them up, are in [`tools/better-world-map`](tools/better-world-map/README.md).
+
+### Tracing an outline on the map
+
+1. Build both plugins (`./build.sh` and `tools/better-world-map/build.sh`), and tick **Show area borders**.
+2. Open the map with **M** and find the area.
+3. **Ctrl+click** each corner in turn. **Ctrl+Shift+click** removes the last corner, and **Ctrl+Alt+click** starts over. The corners are drawn in magenta.
+4. Each click prints the outline so far to the chat, ready to paste:
+
+   ```
+   [Area Names] { name = "New town", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
+   ```
+
+5. Paste it into `world_areas.lua`, rename it and add its subtitle and sprite. Rebuild, tick the area on the **Map borders** tab and check it on the map and on the ground.
+
+The clicks give real tiles even where the map shows a region moved away from its real place (Havenhythe, Prifddinas, Anachronia), using Better World Map's own map data.
+
+Tips:
+
+- Trace neighbouring kingdoms so their edges meet. A gap between them is in no kingdom, and an overlap goes to whichever comes first in the list.
+- Islands like Crandor and Mos Le'Harmless belong to no kingdom; leave them outside the outlines around them.
+- Smaller towns win inside bigger ones, so a town can be traced around the Grand Exchange or Falador Park without cutting them out.
+- Copy the printed line as text rather than retyping it; long outlines are easy to get a digit wrong in.
+
+### Tracing in game
+
+To trace by walking instead, press **Mark corner** on the **Map borders** tab at each corner. Each press prints the outline so far the same way. **Undo corner** removes the last corner, and **Clear corners** starts over. The corners you've marked are drawn in white, on the ground and on Better World Map's map.
 
 ### Finding coordinates
 
@@ -56,7 +100,9 @@ local area_debug = require("src/game/area_debug")
 area_debug.start()
 ```
 
-and `area_debug.stop()` in `PluginShutdown`. It prints your tile whenever the world or an instance is built, and in an instance, the tile it was copied from, which is the one to use for a place. It also says which town and kingdom you've walked into, which is handy for checking borders. The [RuneScape Wiki](https://runescape.wiki) lists coordinates for many locations too.
+and `area_debug.stop()` in `PluginShutdown`. It prints your tile whenever the world or an instance is built, and in an instance, the tile it was copied from, which is the one to use for a place. It also says which town and kingdom you've walked into, which is handy for checking borders.
+
+The [RuneScape Wiki](https://runescape.wiki) lists coordinates for many locations too. A few wiki pages (like Misthalin, Fremennik Province and the Grand Exchange) have an `{{Area map}}` outline in their infobox, whose points can be copied as they are. Careful with coordinates from the wiki though: the wiki's map (like the world map) shows some places moved away from their real tiles. Havenhythe's wiki coordinates are 704, 1792 more than its real ones, and Prifddinas and Anachronia are moved too. The tile area_debug prints is always the real one.
 
 ## Building
 

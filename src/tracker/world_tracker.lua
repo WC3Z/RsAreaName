@@ -23,9 +23,11 @@ local teleport_distance = 10
 local after_teleport_delay_ticks = 4
 -- Game ticks in a minute, for the "Repeat titles after" setting.
 local ticks_per_minute = 100
--- How far outside a town's radius the player has to go to have left it, so
+-- How many tiles outside a town the player has to go to have left it, so
 -- walking along its edge doesn't show it again and again.
-local leave_town_scale = 1.2
+local leave_town_margin = 5
+-- Instances are copied from the game world in blocks this many tiles wide.
+local copied_block_size = 8
 
 ---@type WorldPlace?
 local current_place = nil
@@ -56,13 +58,22 @@ local last_z = nil
 -- tile it was copied from. That's the same every time, wherever the game puts
 -- the instance's copy.
 ---@param player PlayerEntity
----@return CoordGrid?
+---@return integer? x
+---@return integer? z
 local function world_tile(player)
     local tile = player.coordGrid
-    if tile and World.IsRegion() then
-        return World.GetRegionSourceForCoordGrid(tile) or tile
+    if tile == nil then
+        return nil
     end
-    return tile
+    local source = World.IsRegion() and World.GetRegionSourceForCoordGrid(tile)
+    if not source then
+        return tile.x, tile.z
+    end
+    -- Instances are copied in blocks of 8 by 8 tiles, and the source is only
+    -- the block's corner, so the player's place inside the block is added
+    -- back. That's off if the block was copied turned, but still inside it.
+    return source.x - source.x % copied_block_size + tile.x % copied_block_size,
+        source.z - source.z % copied_block_size + tile.z % copied_block_size
 end
 
 -- Shows an area's title, unless the player walked in and it was shown less
@@ -88,28 +99,28 @@ local function on_tick()
     if (player == nil or not in_game or not World.IsAvailable()) then
         return
     end
-    local tile = world_tile(player)
-    if (tile == nil) then
+    local x, z = world_tile(player)
+    if (x == nil) then
         return
     end
-    if (last_x ~= nil and (tile.x - last_x) ^ 2 + (tile.z - last_z) ^ 2 > teleport_distance ^ 2) then
+    if (last_x ~= nil and (x - last_x) ^ 2 + (z - last_z) ^ 2 > teleport_distance ^ 2) then
         area_title.hide()
         ticks_until_titles = math.max(ticks_until_titles, after_teleport_delay_ticks)
         arrived_by_teleport = true
     end
-    last_x, last_z = tile.x, tile.z
+    last_x, last_z = x, z
     if ticks_until_titles > 0 then
         ticks_until_titles = ticks_until_titles - 1
         return
     end
 
-    local place = world_areas.place_at(tile.x, tile.z)
-    local town = world_areas.town_at(tile.x, tile.z)
+    local place = world_areas.place_at(x, z)
+    local town = world_areas.town_at(x, z)
     if (town == nil and current_town ~= nil
-        and world_areas.is_near_town(current_town, tile.x, tile.z, leave_town_scale)) then
+        and world_areas.is_near_town(current_town, x, z, leave_town_margin)) then
         town = current_town
     end
-    local kingdom = world_areas.kingdom_at(tile.x, tile.z)
+    local kingdom = world_areas.kingdom_at(x, z)
 
     if (place ~= nil and current_place ~= place) then
         show(place, place.subtitle)
@@ -175,6 +186,18 @@ function world_tracker.current_title()
         return current_kingdom.name, nil, current_kingdom.sprite
     end
     return nil
+end
+
+-- The player's world tile (in an instance, the one it was copied from), or
+-- nil when there's no player.
+---@return integer? x
+---@return integer? z
+function world_tracker.player_tile()
+    local player = Player.GetEntity()
+    if player == nil then
+        return nil
+    end
+    return world_tile(player)
 end
 
 function world_tracker.start()
