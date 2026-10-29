@@ -36,7 +36,7 @@ There are three kinds:
   { name = "Grand Exchange", at = { 3165, 3487 }, radius = 20 },
   ```
 
-- **Kingdoms** are an outline (`points`, like a town's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
+- **Kingdoms** are an outline (`points`, like a town's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Like towns, you only count as having left a kingdom with an outline 5 tiles past its edge, so walking along a border doesn't show titles back and forth. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
 
   ```lua
   { name = "Karamja", sprite = "THAS_SHIELD_KARAMJA", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },

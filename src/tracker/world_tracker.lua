@@ -23,9 +23,9 @@ local teleport_distance = 10
 local after_teleport_delay_ticks = 4
 -- Game ticks in a minute, for the "Repeat titles after" setting.
 local ticks_per_minute = 100
--- How many tiles outside a town the player has to go to have left it, so
--- walking along its edge doesn't show it again and again.
-local leave_town_margin = 5
+-- How many tiles outside a town or kingdom the player has to go to have left
+-- it, so walking along its edge doesn't show titles back and forth.
+local leave_margin = 5
 -- Instances are copied from the game world in blocks this many tiles wide.
 local copied_block_size = 8
 
@@ -117,10 +117,16 @@ local function on_tick()
     local place = world_areas.place_at(x, z)
     local town = world_areas.town_at(x, z)
     if (town == nil and current_town ~= nil
-        and world_areas.is_near_town(current_town, x, z, leave_town_margin)) then
+        and world_areas.is_near_town(current_town, x, z, leave_margin)) then
         town = current_town
     end
     local kingdom = world_areas.kingdom_at(x, z)
+    -- Still in the kingdom just left while near its edge. Only for outlines, as
+    -- that's what distance_outside measures.
+    if (kingdom ~= current_kingdom and current_kingdom ~= nil and current_kingdom.points
+        and world_areas.distance_outside(current_kingdom, x, z) <= leave_margin) then
+        kingdom = current_kingdom
+    end
 
     if (place ~= nil and current_place ~= place) then
         show(place, place.subtitle)
