@@ -141,16 +141,24 @@ local function add_settings_page(page)
 end
 
 -- A heading, "All" and "None" buttons, and a checkbox for each area, to pick
--- which areas have their borders drawn.
+-- which areas have their borders drawn. The areas are listed alphabetically,
+-- ignoring a leading "The", not in world_areas' order, so they're easy to find.
 ---@param page table
 ---@param heading string
 ---@param areas { name: string }[]
 local function add_area_checkboxes(page, heading, areas)
     local names = {}
-    local items = {}
     for _, area in ipairs(areas) do
         table.insert(names, area.name)
-        table.insert(items, { text = area.name, value = area.name, selected = area_borders.is_area_shown(area.name) })
+    end
+    -- "The Wilderness" goes under W, where you'd look for it.
+    local function sort_key(name)
+        return name:lower():gsub("^the ", "")
+    end
+    table.sort(names, function (a, b) return sort_key(a) < sort_key(b) end)
+    local items = {}
+    for _, name in ipairs(names) do
+        table.insert(items, { text = name, value = name, selected = area_borders.is_area_shown(name) })
     end
 
     page:AddText(heading)

@@ -37,8 +37,10 @@ local CLICKED = 0xFF00FFFF
 local KINGDOM_THICKNESS = 4
 local THICKNESS = 2
 local FONT = id.Font.MUSEO_SANS_13PT_BOLD
--- Lines are sampled about this many UI units apart, so they follow the map's moved
--- segments instead of cutting across them.
+-- Lines are sampled at least this many tiles apart, and about SAMPLE_UNITS UI units apart
+-- when zoomed out, so they follow the map's moved 64-tile segments instead of cutting
+-- across them. Finer sampling only costs time.
+local SAMPLE_TILES = 8
 local SAMPLE_UNITS = 8
 
 -- The same colour for an area every time, picked from its name.
@@ -92,14 +94,28 @@ function M.new(parent)
     self.canvas:SetSize(0, 0, 1, 1)
     self.canvas.clickthrough = true
 
-    -- Draws a line through world-tile points, moved onto the open map by toMap. Points off
-    -- that map break the line.
-    local function polyline(points, colour, thickness, toMap, cx, cz, scale, w, h)
-        local lastX, lastY
-        for _, point in ipairs(points) do
+    -- Each area's shape on a map, kept once worked out, as moving world tiles onto a map
+    -- searches all its segments. Keyed by map, area and sampling step; panning only reuses.
+    local shapes = {}
+
+    -- World-tile points moved onto the open map by toMap: each { map x, map z }, or false
+    -- where the point isn't on that map.
+    local function onMap(points, toMap)
+        local mapped = {}
+        for i, point in ipairs(points) do
             local mx, mz = toMap(point[1], point[2])
-            if mx then
-                local x, y = Map.project(mx, mz, cx, cz, scale, w, h)
+            mapped[i] = mx and { mx, mz } or false
+        end
+        return mapped
+    end
+
+    -- Draws a line through points already on the map (see onMap). Points off the map break
+    -- the line, and lines wholly off one side of the screen are skipped.
+    local function polyline(mapped, colour, thickness, cx, cz, scale, w, h)
+        local lastX, lastY
+        for _, point in ipairs(mapped) do
+            if point then
+                local x, y = Map.project(point[1], point[2], cx, cz, scale, w, h)
                 local onScreen = not (
                     (x < 0 and lastX and lastX < 0)
                     or (x > w and lastX and lastX > w)
@@ -116,13 +132,12 @@ function M.new(parent)
         end
     end
 
-    -- Writes the name at a world tile, if that's on the open map and on screen.
-    local function label(text, x, z, colour, toMap, cx, cz, scale, w, h)
-        local mx, mz = toMap(x, z)
-        if not mx then
+    -- Writes the name at a point already on the map, if it's on screen.
+    local function label(text, point, colour, cx, cz, scale, w, h)
+        if not point then
             return
         end
-        local px, py = Map.project(mx, mz, cx, cz, scale, w, h)
+        local px, py = Map.project(point[1], point[2], cx, cz, scale, w, h)
         if px >= 0 and px < w and py >= 0 and py < h then
             self.canvas:AddText(math.floor(px), math.floor(py), text, FONT, colour)
         end
@@ -180,36 +195,43 @@ function M.new(parent)
         return x / #corners, z / #corners
     end
 
-    -- A kingdom or place: its outline, or each of its rectangles outlined and the name on
-    -- the first.
-    local function rectangles(area, thickness, step, toMap, cx, cz, scale, w, h)
-        local colour = colourOf(area.name)
+    -- An area's shape on the open map: its lines and where its name goes, worked out the
+    -- first time and kept. Kingdoms and places are an outline or rectangles (named on the
+    -- first); towns are an outline or a circle.
+    local function shapeOf(kind, area, areaID, step, toMap)
+        local key = table.concat({ areaID, kind, area.name, step }, ":")
+        local shape = shapes[key]
+        if shape then
+            return shape
+        end
+        local lines, x, z = {}, nil, nil
         if area.points then
-            polyline(along(area.points, step, true, 0.5), colour, thickness, toMap, cx, cz, scale, w, h)
-            local x, z = middle(area.points)
-            label(area.name, x, z, colour, toMap, cx, cz, scale, w, h)
-            return
+            lines[1] = onMap(along(area.points, step, true, 0.5), toMap)
+            x, z = middle(area.points)
+        elseif kind == "town" then
+            lines[1] = onMap(circle(area, step), toMap)
+            x, z = area.at[1], area.at[2]
+        else
+            for i, bounds in ipairs(area.bounds) do
+                lines[i] = onMap(rectangle(bounds, step), toMap)
+            end
+            local first = area.bounds[1]
+            if first then
+                x, z = (first[1] + first[3]) / 2, (first[2] + first[4]) / 2
+            end
         end
-        for _, bounds in ipairs(area.bounds) do
-            polyline(rectangle(bounds, step), colour, thickness, toMap, cx, cz, scale, w, h)
-        end
-        local first = area.bounds[1]
-        if first then
-            label(area.name, (first[1] + first[3]) / 2, (first[2] + first[4]) / 2, colour, toMap, cx, cz, scale, w, h)
-        end
+        shape = { lines = lines, name = x and onMap({ { x, z } }, toMap)[1] or false }
+        shapes[key] = shape
+        return shape
     end
 
-    local function town(area, step, toMap, cx, cz, scale, w, h)
+    local function drawArea(kind, area, thickness, areaID, step, toMap, cx, cz, scale, w, h)
         local colour = colourOf(area.name)
-        local points = area.points and along(area.points, step, true, 0.5) or circle(area, step)
-        polyline(points, colour, THICKNESS, toMap, cx, cz, scale, w, h)
-        local x, z
-        if area.points then
-            x, z = middle(area.points)
-        else
-            x, z = area.at[1], area.at[2]
+        local shape = shapeOf(kind, area, areaID, step, toMap)
+        for _, line in ipairs(shape.lines) do
+            polyline(line, colour, thickness, cx, cz, scale, w, h)
         end
-        label(area.name, x, z, colour, toMap, cx, cz, scale, w, h)
+        label(area.name, shape.name, colour, cx, cz, scale, w, h)
     end
 
     -- main's map click handler supplies the open map and the clicked map position, when Ctrl
@@ -237,8 +259,6 @@ function M.new(parent)
         return true
     end
 
-    -- main.draw supplies the Area Names export, the active area and viewport. Rebuilds only
-    -- when the view, the setting or the corners change.
     -- What of Area Names' state the drawing depends on: the setting, which areas are
     -- ticked, and the corners. Shared by Draw and Changed.
     local function stateKey(areaNames)
@@ -264,6 +284,8 @@ function M.new(parent)
         return (stateKey(areaNames)) ~= self.lastState
     end
 
+    -- main.draw supplies the Area Names export, the active area and viewport. Rebuilds only
+    -- when the view, the setting or the corners change.
     function self:Draw(areaNames, areaID, cx, cz, scale, w, h)
         local state, shown, borders, marked = stateKey(areaNames)
         self.lastState = state
@@ -285,26 +307,29 @@ function M.new(parent)
         local function isShown(name)
             return call(borders.is_area_shown, name) == true
         end
-        local step = math.max(1, math.floor(SAMPLE_UNITS / scale))
+        local step = math.max(SAMPLE_TILES, math.floor(SAMPLE_UNITS / scale))
         for _, kingdom in ipairs(areas.kingdoms or {}) do
             if isShown(kingdom.name) then
-                rectangles(kingdom, KINGDOM_THICKNESS, step, toMap, cx, cz, scale, w, h)
+                drawArea("kingdom", kingdom, KINGDOM_THICKNESS, areaID, step, toMap, cx, cz, scale, w, h)
             end
         end
         for _, place in ipairs(areas.places or {}) do
             if isShown(place.name) then
-                rectangles(place, THICKNESS, step, toMap, cx, cz, scale, w, h)
+                drawArea("place", place, THICKNESS, areaID, step, toMap, cx, cz, scale, w, h)
             end
         end
         for _, area in ipairs(areas.towns or {}) do
             if isShown(area.name) then
-                town(area, step, toMap, cx, cz, scale, w, h)
+                drawArea("town", area, THICKNESS, areaID, step, toMap, cx, cz, scale, w, h)
             end
         end
+        -- Corners change while tracing, so they're moved onto the map every time; there are
+        -- only a few.
         for _, corners in ipairs({ { marked, MARKED_IN_GAME }, { self.corners, CLICKED } }) do
             local list, colour = corners[1], corners[2]
             if #list >= 2 then
-                polyline(along(list, step, #list >= 3, 0.5), colour, THICKNESS, toMap, cx, cz, scale, w, h)
+                local mapped = onMap(along(list, step, #list >= 3, 0.5), toMap)
+                polyline(mapped, colour, THICKNESS, cx, cz, scale, w, h)
             end
         end
     end

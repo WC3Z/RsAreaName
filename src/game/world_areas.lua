@@ -72,7 +72,7 @@ world_areas.towns = {
     { name = "Castle Wars", at = { 2407, 3103 }, radius = 25 },
     -- Asgarnia's coast and islands
     { name = "Entrana", at = { 2834, 3335 }, radius = 40 },
-    { name = "Crandor", subtitle = "Destroyed city-state", at = { 2850, 3240 }, radius = 35 },
+    { name = "Crandor", subtitle = "Destroyed city-state", at = { 2838, 3266 }, radius = 32 },
     { name = "Troll Stronghold", subtitle = "Troll Country", at = { 2840, 3690 }, radius = 30 },
     -- Kharidian Desert
     { name = "Al Kharid", subtitle = "Emirate of Al Kharid", sprite = "THAS_SHIELD_ALKHARID", at = { 3293, 3174 }, radius = 35 },
@@ -100,20 +100,23 @@ world_areas.towns = {
     { name = "Marim", subtitle = "Capital of Ape Atoll", at = { 2760, 2785 }, radius = 40 },
     -- Fremennik Province and its isles
     { name = "Rellekka", subtitle = "City-state", sprite = "THAS_SHIELD_FREMENNIK_PROVENCE", at = { 2660, 3660 }, radius = 40 },
-    { name = "Miscellania", subtitle = "City-state", at = { 2535, 3860 }, radius = 35 },
-    { name = "Etceteria", subtitle = "City-state", at = { 2610, 3875 }, radius = 30 },
-    { name = "Jatizso", subtitle = "City-state", at = { 2410, 3810 }, radius = 30 },
-    { name = "Neitiznot", subtitle = "City-state", at = { 2335, 3805 }, radius = 25 },
-    { name = "Lunar Isle", subtitle = "Home of the Moon Clan", sprite = "THAS_SHIELD_LUNAR_ISLE", at = { 2100, 3910 }, radius = 60 },
+    { name = "Miscellania", subtitle = "City-state", points = { { 2589, 3841 }, { 2586, 3854 }, { 2574, 3855 }, { 2579, 3876 }, { 2574, 3901 }, { 2537, 3910 }, { 2487, 3879 }, { 2498, 3806 }, { 2553, 3806 } } },
+    { name = "Etceteria", subtitle = "City-state", points = { { 2575, 3856 }, { 2589, 3852 }, { 2609, 3836 }, { 2629, 3837 }, { 2645, 3881 }, { 2617, 3913 }, { 2583, 3896 }, { 2575, 3867 } } },
+    { name = "Jatizso", subtitle = "City-state", points = { { 2369, 3787 }, { 2369, 3813 }, { 2418, 3842 }, { 2430, 3839 }, { 2431, 3775 }, { 2395, 3775 } } },
+    { name = "Neitiznot", subtitle = "City-state", points = { { 2305, 3778 }, { 2367, 3778 }, { 2369, 3816 }, { 2385, 3833 }, { 2382, 3852 }, { 2372, 3859 }, { 2358, 3842 }, { 2308, 3842 }, { 2304, 3834 } } },
+    { name = "Lunar Isle", subtitle = "Home of the Moon Clan", sprite = "THAS_SHIELD_LUNAR_ISLE", points = { { 2144, 3836 }, { 2181, 3859 }, { 2173, 3966 }, { 2129, 3967 }, { 2078, 3957 }, { 2052, 3917 }, { 2062, 3859 }, { 2099, 3835 } } },
     -- Islands out at sea
-    { name = "Mos Le'Harmless", subtitle = "Eastern Sea", sprite = "RS3_WORLDMAP_REGION_SHIELD_MOSLEHARMLESS", at = { 3748, 2994 }, radius = 55 },
-    { name = "Harmony Island", subtitle = "Eastern Sea", at = { 3808, 2855 }, radius = 25 },
-    { name = "Dragontooth Island", subtitle = "Eastern Sea", at = { 3806, 3548 }, radius = 20 },
-    { name = "Crash Island", subtitle = "Unquiet Ocean", at = { 2914, 2721 }, radius = 25 },
-    { name = "Void Knights' Outpost", subtitle = "Southern Sea", at = { 2657, 2618 }, radius = 35 },
+    { name = "Mos Le'Harmless", subtitle = "Eastern Sea", sprite = "RS3_WORLDMAP_REGION_SHIELD_MOSLEHARMLESS", points = { { 3850, 2924 }, { 3857, 3059 }, { 3677, 3085 }, { 3627, 3006 }, { 3659, 2911 } } },
+    { name = "Harmony Island", subtitle = "Eastern Sea", points = { { 3842, 2818 }, { 3837, 2886 }, { 3752, 2883 }, { 3775, 2823 }, { 3784, 2816 } } },
+    { name = "Dragontooth Island", subtitle = "Eastern Sea", points = { { 3827, 3522 }, { 3845, 3566 }, { 3800, 3587 }, { 3770, 3559 }, { 3781, 3517 } } },
+    { name = "Crash Island", subtitle = "Unquiet Ocean", points = { { 2939, 2694 }, { 2941, 2746 }, { 2882, 2748 }, { 2879, 2695 } } },
+    { name = "Void Knights' Outpost", subtitle = "Southern Sea", points = { { 2698, 2684 }, { 2709, 2543 }, { 2595, 2542 }, { 2611, 2690 } } },
     { name = "Waterbirth Island", subtitle = "Northern Sea", at = { 2528, 3740 }, radius = 30 },
-    { name = "Iceberg", subtitle = "Lunar Sea", at = { 2675, 4020 }, radius = 30 },
-    { name = "Pirates' Cove", subtitle = "Lunar Sea", at = { 2207, 3812 }, radius = 25 },
+    { name = "Iceberg", subtitle = "Here be penguins", points = { { 2664, 3966 }, { 2755, 3991 }, { 2746, 4048 }, { 2664, 4089 }, { 2639, 4088 }, { 2632, 4070 }, { 2622, 4039 }, { 2626, 3999 } } },
+    { name = "Mammoth iceberg", subtitle = "Lunar Sea", points = { { 2553, 3985 }, { 2543, 4082 }, { 2425, 4070 }, { 2431, 3988 }, { 2481, 3969 } } },
+    { name = "Ungael", subtitle = "Lunar Sea", points = { { 2402, 3964 }, { 2401, 4091 }, { 2291, 4138 }, { 2252, 4057 }, { 2313, 3968 } } },
+    { name = "Pirates' Cove", subtitle = "Lunar Sea", points = { { 2187, 3784 }, { 2232, 3785 }, { 2229, 3841 }, { 2181, 3839 }, { 2170, 3793 } } },
+    { name = "V's island", subtitle = "Lunar Sea", points = { { 2029, 3785 }, { 2043, 3805 }, { 2039, 3822 }, { 2012, 3833 }, { 1989, 3826 }, { 1989, 3790 }, { 1994, 3780 }, { 2024, 3781 } } },
     -- Havenhythe. The wiki and the world map show it moved by 704, 1792 from its real
     -- tiles, which these are. Where its places are is from Better World Map's labels.
     { name = "Wendlewick", at = { 3480, 1553 }, radius = 40 },
@@ -130,6 +133,14 @@ world_areas.towns = {
     { name = "Linbog Village", subtitle = "Fenmoor", at = { 3881, 1498 }, radius = 20 },
     { name = "Fenmoor", at = { 3921, 1429 }, radius = 60 },
     { name = "Shuruk-Ba", at = { 4043, 1604 }, radius = 40 },
+    -- The Arc. Traced on Better World Map's map; moved on the world map, these are their
+    -- real tiles.
+    { name = "Tuai Leit", points = { { 1799, 11899 }, { 1875, 11907 }, { 1834, 12044 }, { 1723, 12032 }, { 1727, 11898 } } },
+    { name = "Whale's Maw", points = { { 1911, 11861 }, { 2131, 11839 }, { 2107, 11759 }, { 1901, 11777 } } },
+    { name = "Waiko", points = { { 2019, 11505 }, { 2027, 11707 }, { 1691, 11703 }, { 1703, 11499 } } },
+    { name = "The Islands That Once Were Turtles", points = { { 2100, 11242 }, { 2364, 11494 }, { 2190, 11584 }, { 1946, 11338 } } },
+    { name = "Goshima", points = { { 2404, 11502 }, { 2598, 11512 }, { 2596, 11692 }, { 2436, 11654 } } },
+    { name = "Cyclosis", points = { { 2395, 11066 }, { 2363, 11314 }, { 2165, 11208 }, { 2305, 11044 } } },
     -- Tirannwn
     -- Its real tiles, which the world map shows moved to inside Tirannwn.
     { name = "Prifddinas", subtitle = "Capital of Tirannwn", sprite = "THAS_SHIELD_ELF_CITY", points = { { 4480, 2560 }, { 4671, 2560 }, { 4671, 2815 }, { 4480, 2815 } } },
@@ -161,12 +172,23 @@ world_areas.kingdoms = {
     { name = "Kharidian Desert", points = { { 3256, 3164 }, { 3269, 3211 }, { 3267, 3324 }, { 3398, 3325 }, { 3415, 3304 }, { 3412, 3282 }, { 3420, 3265 }, { 3422, 3200 }, { 3462, 3181 }, { 3514, 3114 }, { 3534, 3007 }, { 3488, 2942 }, { 3413, 2634 }, { 3229, 2500 }, { 3125, 2542 }, { 2968, 2704 }, { 3050, 2931 }, { 3205, 3121 }, { 3251, 3137 } } },
     -- Outline from the wiki's Fremennik Province page.
     { name = "Fremennik Province", sprite = "THAS_SHIELD_FREMENNIK_PROVENCE", points = { { 2302, 3925 }, { 2750, 3925 }, { 2750, 3715 }, { 2805, 3715 }, { 2805, 3632 }, { 2785, 3585 }, { 2575, 3585 }, { 2470, 3615 }, { 2470, 3770 }, { 2300, 3770 } } },
+    -- Traced on Better World Map's map.
+    { name = "Troll Country", sprite = "RS3_WORLDMAP_REGION_SHIELD_TROLL_LANDS", points = { { 2833, 3587 }, { 2830, 3545 }, { 2811, 3541 }, { 2787, 3583 }, { 2808, 3631 }, { 2808, 3714 }, { 2804, 3718 }, { 2752, 3719 }, { 2752, 3923 }, { 2868, 3974 }, { 2946, 3962 }, { 2946, 3856 }, { 2938, 3778 }, { 2947, 3758 }, { 2952, 3676 }, { 2961, 3656 }, { 2952, 3570 }, { 2917, 3580 }, { 2868, 3573 } } },
+    { name = "Feldip Hills", sprite = "THAS_SHIELD_FELDIP_HILLS", points = { { 2445, 3032 }, { 2451, 3066 }, { 2510, 3064 }, { 2514, 3061 }, { 2521, 3065 }, { 2525, 3065 }, { 2540, 3050 }, { 2555, 3060 }, { 2564, 3046 }, { 2584, 3036 }, { 2669, 2997 }, { 2631, 2815 }, { 2381, 2791 }, { 2373, 2820 } } },
     -- Traced on Better World Map's map. Both are moved on the world map; these are
     -- their real tiles.
     { name = "Havenhythe", points = { { 3558, 1298 }, { 3434, 1367 }, { 3349, 1498 }, { 3362, 1654 }, { 3399, 1809 }, { 3430, 1849 }, { 3609, 1829 }, { 3727, 1781 }, { 3838, 1782 }, { 3866, 1842 }, { 4002, 1853 }, { 4083, 1804 }, { 4143, 1763 }, { 4141, 1511 }, { 4111, 1491 }, { 4030, 1314 }, { 3761, 1285 }, { 3625, 1281 } } },
     { name = "Anachronia", points = { { 5694, 2108 }, { 5699, 2118 }, { 5739, 2171 }, { 5754, 2343 }, { 5745, 2430 }, { 5715, 2505 }, { 5526, 2602 }, { 5342, 2560 }, { 5252, 2545 }, { 5126, 2420 }, { 5131, 2295 }, { 5338, 2073 }, { 5426, 2058 }, { 5664, 2088 } } },
     -- Traced on Better World Map's map.
     { name = "Tirannwn", sprite = "THAS_SHIELD_TIRANNWN", points = { { 2283, 3468 }, { 2158, 3483 }, { 2101, 3417 }, { 2108, 3067 }, { 2200, 3008 }, { 2309, 3015 }, { 2320, 3062 }, { 2333, 3079 }, { 2360, 3082 }, { 2361, 3148 }, { 2407, 3168 }, { 2428, 3204 }, { 2434, 3263 }, { 2399, 3268 }, { 2393, 3314 }, { 2392, 3332 }, { 2377, 3331 }, { 2363, 3331 }, { 2346, 3377 }, { 2343, 3437 } } },
+    -- Islands and regions at sea. Traced on Better World Map's map; the Arc and Ashdale
+    -- are moved on the world map, these are their real tiles.
+    { name = "Ape Atoll", sprite = "RS3_WORLDMAP_REGION_SHIELD_APE_ATOLL", points = { { 2820, 2682 }, { 2815, 2812 }, { 2695, 2812 }, { 2681, 2692 } } },
+    { name = "The Arc", points = { { 1807, 12034 }, { 2607, 11618 }, { 2399, 11034 }, { 1823, 11278 }, { 1675, 11590 }, { 1699, 12058 } } },
+    { name = "Soul Wars", points = { { 1921, 3094 }, { 2034, 3186 }, { 2011, 3315 }, { 1750, 3308 }, { 1767, 3098 } } },
+    { name = "The Lost Grove", points = { { 1371, 5537 }, { 1451, 5579 }, { 1463, 5691 }, { 1433, 5741 }, { 1355, 5750 }, { 1300, 5711 }, { 1287, 5618 }, { 1318, 5573 } } },
+    { name = "Ashdale", sprite = "THAS_SHIELD_ASHDALE", points = { { 2497, 9027 }, { 2518, 9036 }, { 2559, 9066 }, { 2508, 9144 }, { 2448, 9137 }, { 2435, 9107 }, { 2438, 9041 } } },
+    { name = "Iron Enclave", points = { { 2294, 2633 }, { 2300, 2669 }, { 2286, 2691 }, { 2245, 2671 }, { 2243, 2654 }, { 2245, 2629 } } },
 }
 
 ---@param x integer
