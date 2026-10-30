@@ -26,6 +26,11 @@ local world_areas = {}
 ---@field bounds?   integer[][] Rectangles, like a kingdom's
 ---@field points?   integer[][] Its outline instead of rectangles, like a town's
 
+---@class WorldInstance
+---@field name      string
+---@field subtitle? string
+---@field sprite?   string A sprite shown above the name, as its name in id.Sprite
+
 -- Places away from the main world: worlds of their own, and the places
 -- instances are copied from (see World.GetRegionSourceForCoordGrid).
 ---@type WorldPlace[]
@@ -36,6 +41,77 @@ world_areas.places = {
     { name = "War's Retreat", bounds = { { 3200, 10112, 3327, 10175 } } },
     -- Map square 59, 110
     { name = "Telos", subtitle = "The Warden", bounds = { { 3776, 7040, 3839, 7103 } } }
+}
+
+-- Instances by the value of BOSS_INSTANCE_CURRENT_BOSS while the player is in
+-- them. For bosses it's their BSLAY_ID (Boss Slayer, or Reaper task, id), and
+-- these names are the game's BSLAY_NAMEs, split into name and subtitle, or
+-- with where the boss is (from the wiki) as the subtitle. Some bosses only set
+-- it once the fight starts, like Solak and Raksha. Heists use it too, with ids
+-- found by visiting them.
+---@type table<integer, WorldInstance>
+world_areas.instances = {
+    [1] = { name = "Araxxi", subtitle = "Araxyte Hive" },
+    [2] = { name = "The Barrows Brothers", subtitle = "Morytania" },
+    [3] = { name = "Rise of the Six", subtitle = "The Barrows" },
+    [4] = { name = "Chaos Elemental", subtitle = "The Wilderness" },
+    [5] = { name = "Commander Zilyana", subtitle = "God Wars Dungeon" },
+    [6] = { name = "Corporeal Beast", subtitle = "The Wilderness" },
+    [7] = { name = "Dagannoth Kings", subtitle = "Waterbirth Island" },
+    [8] = { name = "General Graardor", subtitle = "God Wars Dungeon" },
+    [9] = { name = "Giant Mole", subtitle = "Falador" },
+    [10] = { name = "Har-Aken", subtitle = "Fight Kiln" },
+    [11] = { name = "Kalphite King", subtitle = "Exiled Kalphite Hive" },
+    [12] = { name = "Kalphite Queen", subtitle = "Kalphite Lair" },
+    [13] = { name = "King Black Dragon", subtitle = "The Wilderness" },
+    [14] = { name = "Kree'arra", subtitle = "God Wars Dungeon" },
+    [15] = { name = "K'ril Tsutsaroth", subtitle = "God Wars Dungeon" },
+    [16] = { name = "Legiones", subtitle = "Ascension Dungeon" },
+    [17] = { name = "Nex", subtitle = "Ancient Prison" },
+    [18] = { name = "Queen Black Dragon", subtitle = "Grotworm Lair" },
+    [19] = { name = "TzTok-Jad", subtitle = "TzHaar Fight Cave" },
+    [20] = { name = "Vorago", subtitle = "Borehole" },
+    [21] = { name = "Beastmaster Durzag", subtitle = "Liberation of Mazcab" },
+    [22] = { name = "Yakamaru", subtitle = "Liberation of Mazcab" },
+    [23] = { name = "The Twin Furies", subtitle = "Heart of Gielinor" },
+    [24] = { name = "Vindicta & Gorvek", subtitle = "Heart of Gielinor" },
+    [25] = { name = "Gregorovic", subtitle = "Heart of Gielinor" },
+    [26] = { name = "Helwyr", subtitle = "Heart of Gielinor" },
+    [27] = { name = "Telos", subtitle = "Heart of Gielinor" },
+    [28] = { name = "Nex", subtitle = "Angel of Death" },
+    [29] = { name = "The Magister", subtitle = "Sophanem Slayer Dungeon" },
+    [30] = { name = "Solak", subtitle = "Guardian of the Grove" },
+    [31] = { name = "The Sanctum Guardian", subtitle = "Temple of Aminishi" },
+    [32] = { name = "Masuta the Ascended", subtitle = "Temple of Aminishi" },
+    [33] = { name = "Seiryu the Azure Serpent", subtitle = "Temple of Aminishi" },
+    [34] = { name = "Astellarn", subtitle = "Dragonkin Laboratory" },
+    [35] = { name = "Verak Lith", subtitle = "Dragonkin Laboratory" },
+    [36] = { name = "Black Stone Dragon", subtitle = "Dragonkin Laboratory" },
+    [37] = { name = "Crassian Leviathan", subtitle = "The Shadow Reef" },
+    [38] = { name = "Taraket the Necromancer", subtitle = "The Shadow Reef" },
+    [39] = { name = "The Ambassador", subtitle = "The Shadow Reef" },
+    [40] = { name = "Raksha", subtitle = "The Shadow Colossus" },
+    [41] = { name = "Rex Matriarchs", subtitle = "Anachronia" },
+    [42] = { name = "Kerapac", subtitle = "The Bound" },
+    [43] = { name = "Arch-Glacor", subtitle = "Glacor Front" },
+    [44] = { name = "Croesus", subtitle = "Croesus Front" },
+    -- Named after the area, since 17 waves come before Zuk himself.
+    [45] = { name = "TzekHaar Front", subtitle = "TzKal-Zuk" },
+    [46] = { name = "Zamorak", subtitle = "Lord of Chaos" },
+    [47] = { name = "Hermod", subtitle = "The Spirit of War" },
+    [48] = { name = "Rasial", subtitle = "The First Necromancer" },
+    [49] = { name = "Zemouregal & Vorkath", subtitle = "Fort Forinthry" },
+    [50] = { name = "Vermyx", subtitle = "Brood Mother" },
+    [51] = { name = "Kezalam", subtitle = "The Wanderer" },
+    [52] = { name = "Nakatra", subtitle = "Devourer Eternal" },
+    [53] = { name = "The Gate of Elidinis", subtitle = "Sanctum of Rebirth" },
+    [54] = { name = "Amascut", subtitle = "The Devourer" },
+    [55] = { name = "Flesh-hatcher Mhekarnahz", subtitle = "Daemonheim" },
+    [56] = { name = "Ivar", subtitle = "King of Bones" },
+    [57] = { name = "Silverquill", subtitle = "The Dreadhog" },
+    -- Heists
+    [500] = { name = "Asuran Arsenal", subtitle = "Anachronia" },
+    [501] = { name = "Vault of Hereditas", subtitle = "Kharid-et Dig Site" },
 }
 
 ---@type WorldTown[]
@@ -2239,6 +2315,13 @@ end
 ---@param x integer
 ---@param z integer
 ---@return WorldPlace?
+-- The instance with the given BOSS_INSTANCE_CURRENT_BOSS value, if it's known.
+---@param instance_id integer?
+---@return WorldInstance?
+function world_areas.instance_with_id(instance_id)
+    return instance_id and world_areas.instances[instance_id]
+end
+
 function world_areas.place_at(x, z)
     return first_containing(world_areas.places, x, z)
 end

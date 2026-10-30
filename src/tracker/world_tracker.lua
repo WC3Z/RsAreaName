@@ -29,7 +29,8 @@ local leave_margin = 5
 -- Instances are copied from the game world in blocks this many tiles wide.
 local copied_block_size = 8
 
----@type WorldPlace?
+-- A known instance, or a place.
+---@type WorldInstance|WorldPlace?
 local current_place = nil
 ---@type WorldKingdom?
 local current_kingdom = nil
@@ -43,7 +44,7 @@ local ticks_until_titles = login_delay_ticks
 local in_game = true
 -- Game ticks since the plugin started, and when each area's title was last shown.
 local tick = 0
----@type table<WorldPlace|WorldTown|WorldKingdom, integer>
+---@type table<WorldInstance|WorldPlace|WorldTown|WorldKingdom, integer>
 local shown_at = {}
 -- Whether the player got where they are by teleport (or portal), so its
 -- title shows even if it was shown a moment ago.
@@ -76,10 +77,20 @@ local function world_tile(player)
         source.z - source.z % copied_block_size + tile.z % copied_block_size
 end
 
+-- The known instance the player is in, if any. BOSS_INSTANCE_CURRENT_BOSS
+-- keeps its value after leaving, so it's only used inside an instance.
+---@return WorldInstance?
+local function current_instance()
+    if not World.IsRegion() then
+        return nil
+    end
+    return world_areas.instance_with_id(var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value)
+end
+
 -- Shows an area's title, unless the player walked in and it was shown less
 -- than the "Repeat titles after" setting ago, like when stepping out of a
 -- town and straight back in. Arriving by teleport always shows it.
----@param area WorldPlace|WorldTown|WorldKingdom
+---@param area WorldInstance|WorldPlace|WorldTown|WorldKingdom
 ---@param subtitle string?
 local function show(area, subtitle)
     local last_shown = shown_at[area]
@@ -91,8 +102,8 @@ local function show(area, subtitle)
     area_title.show(area.name, subtitle, area.sprite)
 end
 
--- Places come first, then towns, then kingdoms. Leaving a town on its own
--- shows nothing.
+-- Known instances and places come first, then towns, then kingdoms. Leaving
+-- a town on its own shows nothing.
 local function on_tick()
     tick = tick + 1
     local player = Player.GetEntity()
@@ -114,7 +125,7 @@ local function on_tick()
         return
     end
 
-    local place = world_areas.place_at(x, z)
+    local place = current_instance() or world_areas.place_at(x, z)
     local town = world_areas.town_at(x, z)
     if (town == nil and current_town ~= nil
         and world_areas.is_near_town(current_town, x, z, leave_margin)) then
