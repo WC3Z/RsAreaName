@@ -21,7 +21,7 @@ On the plugin's page (its ribbon icon), on the **Settings** tab:
 - **Repeat titles after (minutes)**: how long before an area's title shows again when you walk back in. 0 shows it every time.
 - **Preview**: shows the title for where you are now, or an example when that's nowhere named.
 
-The **Map borders** tab is a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
+Dev builds also have a **Map borders** tab, a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
 
 ## Contributing areas
 
@@ -48,11 +48,17 @@ There are three kinds:
   { name = "War's Retreat", bounds = { { 3200, 10112, 3327, 10175 } } },
   ```
 
-`subtitle` and `sprite` are optional for all three. `sprite` is a name from the game's sprites (`id.Sprite`); the lodestone shields are the `THAS_SHIELD_...` ones.
+Instances are also named by **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places, towns and kingdoms. Some bosses only set it once the fight starts.
+
+```lua
+[30] = { name = "Solak", subtitle = "Guardian of the Grove" },
+```
+
+`subtitle` and `sprite` are optional for all of them. `sprite` is a name from the game's sprites (`id.Sprite`); the lodestone shields are the `THAS_SHIELD_...` ones.
 
 ## Mapping areas
 
-All kingdoms are traced outlines; most towns are still circles waiting for theirs. These are the tools for tracing and checking them.
+All kingdoms and most towns are traced outlines. These are the tools for tracing and checking them. They're in `src/mapping`, which only dev builds have.
 
 ### Seeing the borders
 
@@ -93,22 +99,15 @@ To trace by walking instead, press **Mark corner** on the **Map borders** tab at
 
 ### Finding coordinates
 
-`src/game/area_debug.lua` prints where you are to the chat. Turn it on by adding it to `main.lua`:
+**Mark corner** on the **Map borders** tab prints the tile you're standing on. In an instance, that's the tile it was copied from, which is the one to use for a place.
 
-```lua
-local area_debug = require("src/game/area_debug")
-area_debug.start()
-```
-
-and `area_debug.stop()` in `PluginShutdown`. It prints your tile whenever the world or an instance is built, and in an instance, the tile it was copied from, which is the one to use for a place. It also says which town and kingdom you've walked into, which is handy for checking borders.
-
-The [RuneScape Wiki](https://runescape.wiki) lists coordinates for many locations too. A few wiki pages (like Misthalin, Fremennik Province and the Grand Exchange) have an `{{Area map}}` outline in their infobox, whose points can be copied as they are. Careful with coordinates from the wiki though: the wiki's map (like the world map) shows some places moved away from their real tiles. Havenhythe's wiki coordinates are 704, 1792 more than its real ones, and Prifddinas and Anachronia are moved too. The tile area_debug prints is always the real one.
+The [RuneScape Wiki](https://runescape.wiki) lists coordinates for many locations too. A few wiki pages (like Misthalin, Fremennik Province and the Grand Exchange) have an `{{Area map}}` outline in their infobox, whose points can be copied as they are. Careful with coordinates from the wiki though: the wiki's map (like the world map) shows some places moved away from their real tiles. Havenhythe's wiki coordinates are 704, 1792 more than its real ones, and Prifddinas and Anachronia are moved too. The tile **Mark corner** prints is always the real one.
 
 ## Building
 
 ```sh
 ./build.sh           # copies the plugin into Area-Names/
-./build.sh release   # the same, for publishing
+./build.sh release   # for publishing, without the mapping tools (src/mapping)
 ```
 
 To also copy dev builds into your game's `dev_plugins` folder, create `build.local.sh` (it's gitignored) with:

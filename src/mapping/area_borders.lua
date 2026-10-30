@@ -5,7 +5,7 @@
 -- overlay), and the corners marked with corner_marker are white. Only in the
 -- main world, as an instance's tiles aren't where the areas are.
 local world_areas = require("src/game/world_areas")
-local corner_marker = require("src/game/corner_marker")
+local corner_marker = require("src/mapping/corner_marker")
 
 local area_borders = {}
 

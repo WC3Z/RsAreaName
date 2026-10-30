@@ -2,7 +2,8 @@
 # Copies the plugin into Area-Names/, leaving out the tests.
 #
 #   ./build.sh           dev build, plugin.json as it is in the repo
-#   ./build.sh release   release build, optional permissions become required
+#   ./build.sh release   release build, optional permissions become required and
+#                        the mapping tools (src/mapping) are left out
 #
 # To also copy dev builds into your game's dev_plugins folder, create
 # build.local.sh (gitignored) with e.g.:
@@ -30,6 +31,7 @@ mkdir -p "$out_dir"
 cp -r main.lua plugin.json src "$out_dir/"
 
 if [[ "$build_type" == "release" ]]; then
+    rm -rf "$out_dir/src/mapping"
     sed -i 's/"optionalPermissions"/"requiredPermissions"/' "$out_dir/plugin.json"
     if grep -q '"optionalPermissions"' "$out_dir/plugin.json"; then
         echo "Could not make the permissions required in $out_dir/plugin.json" >&2

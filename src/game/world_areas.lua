@@ -1,8 +1,9 @@
 -- The named places in the game world: places outside the towns and kingdoms
--- (like War's Retreat, or where an instance is copied from), towns, each an
--- outline or a circle around its middle, and kingdoms. Places and kingdoms
--- are an outline or one or more rectangles. All positions are world tiles (CoordGrid.x and
--- CoordGrid.z); a map square is 64 of them.
+-- (like War's Retreat, or where an instance is copied from), instances known
+-- by their id, towns, each an outline or a circle around its middle, and
+-- kingdoms. Places and kingdoms are an outline or one or more rectangles. All
+-- positions are world tiles (CoordGrid.x and CoordGrid.z); a map square is 64
+-- of them.
 local world_areas = {}
 
 ---@class WorldTown
@@ -157,7 +158,6 @@ world_areas.towns = {
             { 3131, 3227 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Varrock",
         sprite = "THAS_SHIELD_VARROCK",
@@ -207,7 +207,6 @@ world_areas.towns = {
             { 3182, 3398 }
         }
     },
-    -- Outline from the wiki's Grand Exchange page.
     {
         name = "Grand Exchange",
         points = {
@@ -521,7 +520,6 @@ world_areas.towns = {
             { 2536, 3081 }
         }
     },
-    -- Outline from the wiki's West Ardougne page.
     {
         name = "West Ardougne",
         subtitle = "Capital of West Kandarin",
@@ -1275,8 +1273,8 @@ world_areas.towns = {
             { 2024, 3781 }
         }
     },
-    -- Havenhythe. The wiki and the world map show it moved by 704, 1792 from its real
-    -- tiles, which these are. Where its places are is from Better World Map's labels.
+    -- Havenhythe. The wiki and the world map show it moved by 704, 1792 from its
+    -- real tiles, which these are.
     {
         name = "Wendlewick",
         points = {
@@ -1448,8 +1446,7 @@ world_areas.towns = {
         }
     },
     { name = "Shuruk-Ba", at = { 4043, 1604 }, radius = 45 },
-    -- The Arc. Traced on Better World Map's map; moved on the world map, these are their
-    -- real tiles.
+    -- The Arc. It's moved on the world map; these are its real tiles.
     {
         name = "Tuai Leit",
         points = { { 1799, 11899 }, { 1875, 11907 }, { 1834, 12044 }, { 1723, 12032 }, { 1727, 11898 } }
@@ -1463,7 +1460,7 @@ world_areas.towns = {
     { name = "Goshima", points = { { 2404, 11502 }, { 2598, 11512 }, { 2596, 11692 }, { 2436, 11654 } } },
     { name = "Cyclosis", points = { { 2395, 11066 }, { 2363, 11314 }, { 2165, 11208 }, { 2305, 11044 } } },
     -- Tirannwn
-    -- Its real tiles, which the world map shows moved to inside Tirannwn.
+    -- Its real tiles; the world map shows it moved to inside Tirannwn.
     {
         name = "Prifddinas",
         subtitle = "Capital of Tirannwn",
@@ -1602,7 +1599,6 @@ world_areas.towns = {
 
 ---@type WorldKingdom[]
 world_areas.kingdoms = {
-    -- Traced on Better World Map's map.
     {
         name = "Karamja",
         sprite = "THAS_SHIELD_KARAMJA",
@@ -1622,9 +1618,8 @@ world_areas.kingdoms = {
             { 2757, 2874 }
         }
     },
-    -- Outline from the wiki's Misthalin page, with its east edge moved out to meet the
-    -- traced Morytania and Kharidian Desert, so the River Salve and the Polypore Dungeon
-    -- entrance are Misthalin.
+    -- Its east edge meets Morytania and the Kharidian Desert, so the River Salve
+    -- and the Polypore Dungeon entrance are Misthalin.
     {
         name = "Misthalin",
         points = {
@@ -1660,7 +1655,6 @@ world_areas.kingdoms = {
             { 3066, 3186 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Asgarnia",
         points = {
@@ -1732,7 +1726,6 @@ world_areas.kingdoms = {
             { 3054, 3145 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Kandarin",
         points = {
@@ -1793,8 +1786,7 @@ world_areas.kingdoms = {
             { 2799, 3545 }
         }
     },
-    -- Traced on Better World Map's map. Before the Wilderness and Morytania, whose
-    -- rectangles reach over its edges.
+    -- Before the Wilderness and Morytania, which reach over its edges.
     {
         name = "Daemonheim",
         points = {
@@ -1816,8 +1808,7 @@ world_areas.kingdoms = {
             { 3371, 3620 }
         }
     },
-    -- Traced on Better World Map's map; its south edge runs along the ditch, where
-    -- Misthalin ends.
+    -- Its south edge runs along the ditch, where Misthalin ends.
     {
         name = "The Wilderness",
         sprite = "THAS_SHIELD_WILDERNESS_VOLCANO",
@@ -1858,7 +1849,6 @@ world_areas.kingdoms = {
             { 2950, 3556 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Morytania",
         points = {
@@ -1882,8 +1872,7 @@ world_areas.kingdoms = {
             { 3458, 3194 }
         }
     },
-    -- Traced on Better World Map's map, with its north-east edge moved to meet the traced
-    -- Morytania.
+    -- Its north-east edge meets Morytania.
     {
         name = "Kharidian Desert",
         points = {
@@ -1908,7 +1897,6 @@ world_areas.kingdoms = {
             { 3251, 3137 }
         }
     },
-    -- Outline from the wiki's Fremennik Province page.
     {
         name = "Fremennik Province",
         sprite = "THAS_SHIELD_FREMENNIK_PROVENCE",
@@ -1925,7 +1913,6 @@ world_areas.kingdoms = {
             { 2300, 3770 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Troll Country",
         sprite = "RS3_WORLDMAP_REGION_SHIELD_TROLL_LANDS",
@@ -1971,8 +1958,7 @@ world_areas.kingdoms = {
             { 2373, 2820 }
         }
     },
-    -- Traced on Better World Map's map. Both are moved on the world map; these are
-    -- their real tiles.
+    -- Both are moved on the world map; these are their real tiles.
     {
         name = "Havenhythe",
         points = {
@@ -2015,7 +2001,6 @@ world_areas.kingdoms = {
             { 5664, 2088 }
         }
     },
-    -- Traced on Better World Map's map.
     {
         name = "Tirannwn",
         sprite = "THAS_SHIELD_TIRANNWN",
@@ -2042,8 +2027,8 @@ world_areas.kingdoms = {
             { 2343, 3437 }
         }
     },
-    -- Islands and regions at sea. Traced on Better World Map's map; the Arc and Ashdale
-    -- are moved on the world map, these are their real tiles.
+    -- Islands and regions at sea. The Arc and Ashdale are moved on the world map;
+    -- these are their real tiles.
     {
         name = "Ape Atoll",
         sprite = "RS3_WORLDMAP_REGION_SHIELD_APE_ATOLL",
