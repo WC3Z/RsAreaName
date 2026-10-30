@@ -24,12 +24,15 @@ local apostrophe = "`"
 -- shown on the settings page.
 
 -- Fonts only come in fixed sizes, so each font has one for the title and one
--- for the subtitle at each of the sizes below.
+-- for the subtitle at each of the sizes below. A font whose spaces look too
+-- narrow in titles at a size can have title_spaces: how many spaces each one
+-- becomes at that size.
 area_title.fonts = {
     {
         id = "cinzel", label = "Cinzel",
         title = { small = id.Font.CINZEL_48PT_BOLD, medium = id.Font.CINZEL_72PT_BOLD, large = id.Font.CINZEL_90PT_BOLD },
         subtitle = { small = id.Font.CINZEL_18PT_BOLD, medium = id.Font.CINZEL_25PT_BOLD_MULTILINE, large = id.Font.CINZEL_35PT_BOLD },
+        title_spaces = { large = 2 },
     },
     {
         id = "museo", label = "Museo Sans",
@@ -50,6 +53,11 @@ area_title.fonts = {
         id = "surok", label = "Surok",
         title = { small = id.Font.SUROK_FONT, medium = id.Font.SUROK_FONT, large = id.Font.SUROK_FONT },
         subtitle = { small = id.Font.SUROK_FONT, medium = id.Font.SUROK_FONT, large = id.Font.SUROK_FONT },
+    },
+    {
+        id = "noto_sans", label = "Noto Sans",
+        title = { small = id.Font.NOTOSANS_BOLD_36, medium = id.Font.NOTOSANS_BOLD_44, large = id.Font.NOTOSANS_BOLD_50 },
+        subtitle = { small = id.Font.NOTOSANS_BOLD_18, medium = id.Font.NOTOSANS_BOLD_21, large = id.Font.NOTOSANS_BOLD_24 },
     },
 }
 
@@ -98,6 +106,39 @@ area_title.sounds = {
     -- Amascut
     { id = "amascut_meow", label = "Amascut meow", sound = id.Sound.DQB_AMAS_EMOTE_VO_DAMAGE_03 },
     { id = "amascut_snarl", label = "Amascut snarl", sound = id.Sound.DQB_AMAS_EMOTE_VO_SNARLS_01 },
+    -- Fanfares, stings, bells, horns and atmosphere
+    { id = "theatre_fanfare", label = "Theatre fanfare", sound = id.Sound.CLAN_THEATRE_MUSIC_FANFARE },
+    { id = "crafting_fanfare", label = "Crafting fanfare", sound = id.Sound.SKILLCAPE_EMOTE_CRAFTING_FANFARE },
+    { id = "achievement", label = "Achievement", sound = id.Sound.CHEEVO_ACHIEVEMENT_COMPLETE_SOUND_V3 },
+    { id = "quest_complete", label = "Quest complete", sound = id.Sound.TUT7_UI_QUESTCOMPLETE },
+    { id = "dar_quest_complete", label = "Desert quest done", sound = id.Sound.DAR_MU_HET_QUEST_COMPLETE_01 },
+    { id = "clue_found", label = "Clue found", sound = id.Sound.OPN_CLUE_FOUND },
+    { id = "level_up_sparkle", label = "Level up sparkle", sound = id.Sound.LEVEL_UP_SPARKLE },
+    { id = "discovery", label = "Discovery", sound = id.Sound.INVENT_DISCOVERY_SUCCESS },
+    { id = "entrance_sting", label = "Entrance sting", sound = id.Sound.PRE_RELEASE_ENTRACE_STING },
+    { id = "memory_sting", label = "Memory sting", sound = id.Sound.DOC_MOIA_MEMORY_STING_JINGLE },
+    { id = "um_bridge_sting", label = "Um bridge sting", sound = id.Sound.NECRO_AMB_UM_BRIDGE_WIND_STING_01 },
+    { id = "well_of_souls", label = "Well of Souls", sound = id.Sound.NECRO_AMB_WELL_OF_SOULS_STINGS_01 },
+    { id = "voices_of_seren", label = "Voices of Seren", sound = id.Sound.TREASURE_HUNTER_VOICES_OF_SEREN_START },
+    { id = "prifddinas_chimes", label = "Prifddinas chimes", sound = id.Sound.ELFCITY_ENTRANCE_CHIMES },
+    { id = "elf_city_bells", label = "Elf city bells", sound = id.Sound.ELF_CITY_BELLS_1 },
+    { id = "single_chime", label = "Single chime", sound = id.Sound.TARDDIAD_SINGLE_CHIME_1 },
+    { id = "town_crier_bell", label = "Town crier bell", sound = id.Sound.TOWN_CRIER_BELL_RING_1 },
+    { id = "church_bell_2", label = "Church bell 2", sound = id.Sound.CHURCH_BELL },
+    { id = "fortress_bells", label = "Fortress bells", sound = id.Sound.NOMEL_FORTRESS_BELLS_1 },
+    { id = "arena_horn", label = "Arena horn", sound = id.Sound.DOM_ARENA_BLOW_HORN },
+    { id = "hornblower", label = "Hornblower", sound = id.Sound.OMGE_HORNBLOWER },
+    { id = "prayer_choir", label = "Prayer choir", sound = id.Sound.SKILLCAPE_EMOTE_PRAYER_CHOIR1 },
+    { id = "inspiration_choir", label = "Inspiration choir", sound = id.Sound.INVENT_PLAYER_INSPIRATION_SPOTANIM_CHOIR },
+    { id = "ominous_bass", label = "Ominous bass", sound = id.Sound.TARDDIAD_OMINOUS_BASS_1 },
+    { id = "ominous_drone", label = "Ominous drone", sound = id.Sound.OMGE_OMINOUS_DRONE_1 },
+    { id = "gwd_thunder", label = "God Wars thunder", sound = id.Sound.GW2_THUNDER_1 },
+    { id = "wilderness_thunder", label = "Wilderness thunder", sound = id.Sound.WILDERNESS_THUNDER_CLAP_1 },
+    { id = "qbd_reveal", label = "Queen Black Dragon reveal", sound = id.Sound.QBD_BELLYOFTHEBEAST_REVEAL },
+    { id = "tree_reveal", label = "Tree reveal", sound = id.Sound.EYEGLO_TREE_REVEAL },
+    { id = "portal_open", label = "Portal open", sound = id.Sound.WIZARDS_TOWER_RUNECRAFT_PORTAL_OPEN },
+    { id = "crystal_whoosh", label = "Crystal whoosh", sound = id.Sound.MTX74_CRYSTAL_WHOOSH },
+    { id = "death_jingle", label = "Death jingle", sound = id.Sound.DEATH2_JINGLE },
 }
 
 -- Sounds the game doesn't have, like a number past the last snarl, are left
@@ -136,6 +177,13 @@ end
 local title
 ---@type ui.Text?
 local subtitle
+-- How far below the title the subtitle was put when it was made. Moving it
+-- with SetPos afterwards doesn't show in game, so it's made anew to move it.
+---@type integer?
+local subtitle_gap_made_at
+-- The layer the title is drawn on.
+---@type ui.Component?
+local root
 -- The area's shield above its name, like the lodestones', if it has one.
 ---@type ui.Sprite?
 local shield
@@ -230,17 +278,22 @@ local function on_draw(event)
 end
 
 -- Gives the title and subtitle the font, size and colour from the settings.
----@param title_text ui.Text
----@param subtitle_text ui.Text
-local function apply_settings(title_text, subtitle_text)
+local function apply_settings()
+    if not title or not subtitle or not root then
+        return
+    end
     local font = find(area_title.fonts, db.get_font())
     local size = find(area_title.sizes, db.get_font_size())
     local colour = find(area_title.colours, db.get_colour())
-    title_text.font = font.title[size.id]
-    subtitle_text.font = font.subtitle[size.id]
-    subtitle_text:SetPos(0, size.subtitle_gap, 0, title_height_on_screen)
-    title_text.rgb = colour.rgb
-    subtitle_text.rgb = colour.rgb
+    if size.subtitle_gap ~= subtitle_gap_made_at then
+        subtitle:Destroy()
+        subtitle = new_text(root, font.subtitle[size.id], size.subtitle_gap)
+        subtitle_gap_made_at = size.subtitle_gap
+    end
+    title.font = font.title[size.id]
+    subtitle.font = font.subtitle[size.id]
+    title.rgb = colour.rgb
+    subtitle.rgb = colour.rgb
 end
 
 -- Plays the sound from the settings, even with sounds turned off, to hear it
@@ -265,9 +318,10 @@ end
 function area_title.start()
     -- The bottom plugin layer is under the game's interfaces, so open
     -- interfaces cover the title, like they cover the game world.
-    local root = ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_BOTTOM)
+    root = ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_BOTTOM)
     title = new_text(root, id.Font.CINZEL_72PT_BOLD, 0)
     subtitle = new_text(root, id.Font.CINZEL_25PT_BOLD_MULTILINE, 80)
+    subtitle_gap_made_at = 80
     shield = ui.Sprite.new(root)
     shield:SetSize(shield_size, shield_size)
     -- Centred, with its bottom where the title's top is.
@@ -305,8 +359,11 @@ function area_title.show(name, subtitle_text, sprite_name)
             shield.alpha = 0
         end
     end
-    apply_settings(title, subtitle)
-    title.content = (name:gsub("'", apostrophe))
+    apply_settings()
+    local font = find(area_title.fonts, db.get_font())
+    local size = find(area_title.sizes, db.get_font_size())
+    local spaces = string.rep(" ", font.title_spaces and font.title_spaces[size.id] or 1)
+    title.content = (name:gsub("'", apostrophe):gsub(" ", spaces))
     subtitle.content = ((subtitle_text or ""):gsub("'", apostrophe))
     title.alpha = 0
     subtitle.alpha = 0
@@ -352,7 +409,9 @@ function area_title.stop()
     end
     title = nil
     subtitle = nil
+    subtitle_gap_made_at = nil
     shield = nil
+    root = nil
     shown_for = nil
 end
 

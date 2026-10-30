@@ -43,7 +43,7 @@ end
 
 ---@return string
 function Db.get_colour()
-    return get_string(colour_key, "parchment")
+    return get_string(colour_key, "gold")
 end
 
 ---@param colour string
@@ -95,7 +95,7 @@ end
 
 ---@return string
 function Db.get_sound()
-    return get_string(sound_key, "church_bell")
+    return get_string(sound_key, "achievement")
 end
 
 ---@param sound string
