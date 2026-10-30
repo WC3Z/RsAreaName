@@ -17,8 +17,8 @@ local fade_out_seconds = 1.5
 local title_height_on_screen = 0.3
 
 -- What apostrophes in names are shown as. The fonts draw a plain ' low, like a
--- comma, so it's swapped for a curly one (written as Windows-1252).
-local apostrophe = "\x92"
+-- comma, and have no curly one, so it's swapped for a grave accent.
+local apostrophe = "`"
 
 -- The choices for each setting. Each has the id it's saved as, and the label
 -- shown on the settings page.

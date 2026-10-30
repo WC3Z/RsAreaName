@@ -3,6 +3,11 @@
 -- BOSS_INSTANCE_CURRENT_BOSS is a plain number (500 at heist 2, 501 at heist 1,
 -- from Discord). It's printed both as a struct id and against the
 -- BOSS_INSTANCE_UNIQUE_ID of a few boss structs, to see which it is.
+-- Also prints, each game tick, when the player goes in or out of an instance,
+-- and in one, whenever the area it resolves to changes.
+local world_areas = require("src/game/world_areas")
+local world_tracker = require("src/tracker/world_tracker")
+
 local instance_debug = {}
 
 local subscription_name = "area_names_instance_debug"
@@ -73,7 +78,54 @@ local function print_source()
     end
 end
 
+---@type boolean?
+local last_in_instance
+---@type string?
+local last_area
+
+-- The area the plugin finds at a tile: place, town and kingdom.
+---@param x integer
+---@param z integer
+---@return string
+local function areas_at(x, z)
+    local place = world_areas.place_at(x, z)
+    local town = world_areas.town_at(x, z)
+    local kingdom = world_areas.kingdom_at(x, z)
+    return string.format("place %s, town %s, kingdom %s", place and place.name or "(none)",
+        town and town.name or "(none)", kingdom and kingdom.name or "(none)")
+end
+
+local function print_instance_changes()
+    local player = Player.GetEntity()
+    local tile = player and player.coordGrid
+    if not tile or not World.IsAvailable() then
+        return
+    end
+    local in_instance = World.IsRegion()
+    if in_instance ~= last_in_instance then
+        print(string.format("[Instance debug] %s an instance, player at %d, %d",
+            in_instance and "Entered" or "Not in", tile.x, tile.z))
+        last_in_instance = in_instance
+        last_area = nil
+    end
+    if not in_instance then
+        return
+    end
+    local x, z = world_tracker.player_tile()
+    if not x then
+        return
+    end
+    local area = areas_at(x, z)
+    if area ~= last_area then
+        local source = World.GetRegionSourceForCoordGrid(tile)
+        print(string.format("[Instance debug]   at %d, %d, source %s, counted as %d, %d: %s", tile.x, tile.z,
+            source and string.format("%d, %d", source.x, source.z) or "none", x, z, area))
+        last_area = area
+    end
+end
+
 local function on_tick()
+    print_instance_changes()
     local player_value = var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value
     local client_value = var.VarClient.BOSS_INSTANCE_CURRENT_BOSS_CLIENT.value
     if player_value == last_player_value and client_value == last_client_value then
@@ -95,6 +147,7 @@ end
 function instance_debug.stop()
     Event.ServerLogic.Unsubscribe(subscription_name)
     last_player_value, last_client_value = nil, nil
+    last_in_instance, last_area = nil, nil
 end
 
 return instance_debug
