@@ -1,16 +1,15 @@
--- The named places in the game world: places outside the towns and kingdoms
--- (like War's Retreat, or where an instance is copied from), instances known
--- by their id, towns, each an outline or a circle around its middle, and
--- kingdoms. Places and kingdoms are an outline or one or more rectangles. All
--- positions are world tiles (CoordGrid.x and CoordGrid.z); a map square is 64
--- of them.
+-- The named areas in the game world: places (towns, islands, dungeons, worlds
+-- of their own like War's Retreat), each an outline or a circle around its
+-- middle; kingdoms, each an outline or one or more rectangles; and instances
+-- known by their id. All positions are world tiles (CoordGrid.x and
+-- CoordGrid.z); a map square is 64 of them.
 local world_areas = {}
 
----@class WorldTown
+---@class WorldPlace
 ---@field name      string
----@field subtitle? string
+---@field subtitle? string      Shown under the name; without one, the kingdom it's in is
 ---@field sprite?   string      A sprite shown above the name, as its name in id.Sprite
----@field points?   integer[][] Its outline: the corners in order, each { world tile x, world tile z }. Towns without one are a circle
+---@field points?   integer[][] Its outline: the corners in order, each { world tile x, world tile z }. Places without one are a circle
 ---@field at?       integer[]   { world tile x, world tile z } of the circle's middle
 ---@field radius?   integer     The circle's radius, in tiles
 
@@ -18,31 +17,12 @@ local world_areas = {}
 ---@field name    string
 ---@field sprite? string      A sprite shown above the name, as its name in id.Sprite
 ---@field bounds? integer[][] Rectangles, each { min x, min z, max x, max z } in world tiles (both ends included)
----@field points? integer[][] Its outline instead of rectangles, like a town's
-
----@class WorldPlace
----@field name      string
----@field subtitle? string
----@field sprite?   string      A sprite shown above the name, as its name in id.Sprite
----@field bounds?   integer[][] Rectangles, like a kingdom's
----@field points?   integer[][] Its outline instead of rectangles, like a town's
+---@field points? integer[][] Its outline instead of rectangles, like a place's
 
 ---@class WorldInstance
 ---@field name      string
 ---@field subtitle? string
 ---@field sprite?   string A sprite shown above the name, as its name in id.Sprite
-
--- Places away from the main world: worlds of their own, and the places
--- instances are copied from (see World.GetRegionSourceForCoordGrid).
----@type WorldPlace[]
-world_areas.places = {
-    -- Map square 6, 10
-    { name = "Death's Office", bounds = { { 384, 640, 447, 703 } } },
-    -- Map squares 50, 158 to 51, 158
-    { name = "War's Retreat", bounds = { { 3200, 10112, 3327, 10175 } } },
-    -- Map square 59, 110
-    { name = "Telos", subtitle = "The Warden", bounds = { { 3776, 7040, 3839, 7103 } } }
-}
 
 -- Instances by the value of BOSS_INSTANCE_CURRENT_BOSS while the player is in
 -- them. For bosses it's their BSLAY_ID (Boss Slayer, or Reaper task, id), and
@@ -115,8 +95,10 @@ world_areas.instances = {
     [501] = { name = "Vault of Hereditas", subtitle = "Kharid-et Dig Site" },
 }
 
----@type WorldTown[]
-world_areas.towns = {
+-- Where places overlap, the smallest wins, so the Grand Exchange shows inside
+-- Varrock.
+---@type WorldPlace[]
+world_areas.places = {
     -- Misthalin
     {
         name = "Lumbridge",
@@ -1594,7 +1576,12 @@ world_areas.towns = {
             { 4331, 770 }
         }
     },
-    { name = "Otot", points = { { 4123, 899 }, { 4213, 897 }, { 4219, 940 }, { 4111, 942 } } }
+    { name = "Otot", points = { { 4123, 899 }, { 4213, 897 }, { 4219, 940 }, { 4111, 942 } } },
+    -- Worlds of their own
+    -- Map square 6, 10
+    { name = "Death's Office", points = { { 384, 640 }, { 447, 640 }, { 447, 703 }, { 384, 703 } } },
+    -- Map squares 50, 158 to 51, 158
+    { name = "War's Retreat", points = { { 3200, 10112 }, { 3327, 10112 }, { 3327, 10175 }, { 3200, 10175 } } }
 }
 
 ---@type WorldKingdom[]
@@ -2202,93 +2189,93 @@ local function inside_outline(points, x, z)
     return inside_it
 end
 
--- How far the tile is outside the town (or any area with an outline), in
--- tiles; 0 or less is inside it. Tiles on the outline count as inside.
----@param town WorldTown | WorldKingdom | WorldPlace
+-- How far the tile is outside the area (a place, or a kingdom with an
+-- outline), in tiles; 0 or less is inside it. Tiles on the outline count as
+-- inside.
+---@param area WorldPlace | WorldKingdom
 ---@param x    integer
 ---@param z    integer
 ---@return number
-function world_areas.distance_outside(town, x, z)
-    if town.points then
+function world_areas.distance_outside(area, x, z)
+    if area.points then
         local nearest = math.huge
-        local previous = town.points[#town.points]
-        for _, point in ipairs(town.points) do
+        local previous = area.points[#area.points]
+        for _, point in ipairs(area.points) do
             nearest = math.min(nearest, distance_to_line(x, z, previous, point))
             previous = point
         end
-        return inside_outline(town.points, x, z) and -nearest or nearest
+        return inside_outline(area.points, x, z) and -nearest or nearest
     end
-    return math.sqrt((x - town.at[1]) ^ 2 + (z - town.at[2]) ^ 2) - town.radius
+    return math.sqrt((x - area.at[1]) ^ 2 + (z - area.at[2]) ^ 2) - area.radius
 end
 
--- How big each town is, in square tiles, worked out when first needed.
----@type table<WorldTown, number>
-local town_sizes = setmetatable({}, { __mode = "k" })
+-- How big each place is, in square tiles, worked out when first needed.
+---@type table<WorldPlace, number>
+local place_sizes = setmetatable({}, { __mode = "k" })
 
----@param town WorldTown
+---@param place WorldPlace
 ---@return number
-local function size_of(town)
-    if town_sizes[town] then
-        return town_sizes[town]
+local function size_of(place)
+    if place_sizes[place] then
+        return place_sizes[place]
     end
     local size
-    if town.points then
+    if place.points then
         -- The shoelace formula.
         local twice_size = 0
-        local previous = town.points[#town.points]
-        for _, point in ipairs(town.points) do
+        local previous = place.points[#place.points]
+        for _, point in ipairs(place.points) do
             twice_size = twice_size + previous[1] * point[2] - point[1] * previous[2]
             previous = point
         end
         size = math.abs(twice_size) / 2
     else
-        size = math.pi * town.radius ^ 2
+        size = math.pi * place.radius ^ 2
     end
-    town_sizes[town] = size
+    place_sizes[place] = size
     return size
 end
 
--- The town the tile is in. Where towns overlap, the smallest wins, so the
--- Grand Exchange shows inside Varrock. nil outside every town.
+-- The place the tile is in. Where places overlap, the smallest wins. nil
+-- outside every place.
 ---@param x integer
 ---@param z integer
----@return WorldTown?
-function world_areas.town_at(x, z)
+---@return WorldPlace?
+function world_areas.place_at(x, z)
     local smallest
-    for _, town in ipairs(world_areas.towns) do
-        if world_areas.distance_outside(town, x, z) <= 0 and (not smallest or size_of(town) < size_of(smallest)) then
-            smallest = town
+    for _, place in ipairs(world_areas.places) do
+        if world_areas.distance_outside(place, x, z) <= 0 and (not smallest or size_of(place) < size_of(smallest)) then
+            smallest = place
         end
     end
     return smallest
 end
 
--- Whether the tile is in the town, or at most `margin` tiles outside it.
----@param town   WorldTown
+-- Whether the tile is in the place, or at most `margin` tiles outside it.
+---@param place  WorldPlace
 ---@param x      integer
 ---@param z      integer
 ---@param margin number    In tiles
 ---@return boolean
-function world_areas.is_near_town(town, x, z, margin)
-    return world_areas.distance_outside(town, x, z) <= margin
+function world_areas.is_near_place(place, x, z, margin)
+    return world_areas.distance_outside(place, x, z) <= margin
 end
 
--- The first area in the list whose outline or rectangles the tile is in.
----@generic Area: WorldKingdom | WorldPlace
----@param areas Area[]
----@param x     integer
----@param z     integer
----@return Area?
-local function first_containing(areas, x, z)
-    for _, area in ipairs(areas) do
-        if area.points then
-            if world_areas.distance_outside(area, x, z) <= 0 then
-                return area
+-- The kingdom the tile is in: the first in the list whose outline or
+-- rectangles it's in. nil outside every kingdom.
+---@param x integer
+---@param z integer
+---@return WorldKingdom?
+function world_areas.kingdom_at(x, z)
+    for _, kingdom in ipairs(world_areas.kingdoms) do
+        if kingdom.points then
+            if world_areas.distance_outside(kingdom, x, z) <= 0 then
+                return kingdom
             end
         else
-            for _, bounds in ipairs(area.bounds) do
+            for _, bounds in ipairs(kingdom.bounds) do
                 if inside(x, z, bounds) then
-                    return area
+                    return kingdom
                 end
             end
         end
@@ -2296,27 +2283,11 @@ local function first_containing(areas, x, z)
     return nil
 end
 
--- The place the tile is in, or nil outside every place.
----@param x integer
----@param z integer
----@return WorldPlace?
 -- The instance with the given BOSS_INSTANCE_CURRENT_BOSS value, if it's known.
 ---@param instance_id integer?
 ---@return WorldInstance?
 function world_areas.instance_with_id(instance_id)
     return instance_id and world_areas.instances[instance_id]
-end
-
-function world_areas.place_at(x, z)
-    return first_containing(world_areas.places, x, z)
-end
-
--- The kingdom the tile is in, or nil outside every kingdom.
----@param x integer
----@param z integer
----@return WorldKingdom?
-function world_areas.kingdom_at(x, z)
-    return first_containing(world_areas.kingdoms, x, z)
 end
 
 return world_areas

@@ -96,7 +96,8 @@ area_title.sounds = {
     { id = "ge_trade_error", label = "GE trade error", sound = id.Sound.GE_TRADE_ERROR },
     { id = "research_finished", label = "Research done", sound = id.Sound.ARCH_RESEARCH_FINISHED },
     -- Amascut
-    { id = "amascut_meow", label = "Amascut meow", sound = id.Sound.DQB_AMAS_EMOTE_VO_SNARLS_01 },
+    { id = "amascut_meow", label = "Amascut meow", sound = id.Sound.DQB_AMAS_EMOTE_VO_DAMAGE_03 },
+    { id = "amascut_snarl", label = "Amascut snarl", sound = id.Sound.DQB_AMAS_EMOTE_VO_SNARLS_01 },
 }
 
 -- Sounds the game doesn't have, like a number past the last snarl, are left

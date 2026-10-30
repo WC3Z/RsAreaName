@@ -6,10 +6,10 @@ A RuneScape 3 plugin that announces where you are, like the area titles in the S
 
 ## Features
 
-- **Towns, kingdoms and places.** Walking into a town shows the town, with its own subtitle or the kingdom it's in. Crossing into another kingdom shows the kingdom. Places away from the main world, like War's Retreat or Death's Office, and boss instances like Telos, have their own titles too.
+- **Places, kingdoms and instances.** Walking into a place (a town, an island, a dungeon) shows it, with its own subtitle or the kingdom it's in. Crossing into another kingdom shows the kingdom. Worlds of their own like War's Retreat, boss fights and heists have their own titles too.
 - **Lodestone shields** above the names of areas that have one.
 - **No titles during loading screens.** After a teleport, the title waits until the loading screen is over, then shows where you arrived.
-- **No repeats when walking back in.** Stepping out of a town and straight back in doesn't show its title again for a while (see Settings). Arriving by teleport always shows it.
+- **No repeats when walking back in.** Stepping out of a place and straight back in doesn't show its title again for a while (see Settings). Arriving by teleport always shows it.
 
 ## Settings
 
@@ -29,40 +29,34 @@ New areas, better borders and fixes to the ones there are very welcome. All of t
 
 There are three kinds:
 
-- **Towns** are outlines: their corners in order, as `{ x, z }` tiles. Towns nobody has traced yet are circles instead: a middle and a radius in tiles. The title shows when you're inside, and you only count as having left 5 tiles outside, so walking along the edge doesn't show it again and again. Where towns overlap, the smallest wins, so the Grand Exchange shows inside Varrock.
+- **Places** are anything with a name of its own: towns, islands, dungeons, worlds of their own like War's Retreat, and the places instances are copied from. Each is an outline: its corners in order, as `{ x, z }` tiles. Places nobody has traced yet are circles instead: a middle and a radius in tiles. The title shows when you're inside, with the place's subtitle, or without one, the kingdom it's in. You only count as having left 5 tiles outside, so walking along the edge doesn't show it again and again. Where places overlap, the smallest wins, so the Grand Exchange shows inside Varrock.
 
   ```lua
   { name = "Varrock", subtitle = "Capital of Misthalin", sprite = "THAS_SHIELD_VARROCK", points = { { 3175, 3380 }, { 3270, 3380 }, { 3270, 3505 }, { 3175, 3505 } } },
   { name = "Grand Exchange", at = { 3165, 3487 }, radius = 20 },
   ```
 
-- **Kingdoms** are an outline (`points`, like a town's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Like towns, you only count as having left a kingdom with an outline 5 tiles past its edge, so walking along a border doesn't show titles back and forth. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
+- **Kingdoms** are an outline (`points`, like a place's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Their title shows when you cross into one outside any place. Like places, you only count as having left a kingdom with an outline 5 tiles past its edge. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
 
   ```lua
   { name = "Karamja", sprite = "THAS_SHIELD_KARAMJA", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
   ```
 
-- **Places** are areas away from the main world, an outline or rectangles like kingdoms: worlds of their own (like War's Retreat) and the places instances are copied from (like the Telos fight). They come before towns and kingdoms.
+- **Instances** are named by their **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places and kingdoms. Some bosses only set it once the fight starts.
 
   ```lua
-  { name = "War's Retreat", bounds = { { 3200, 10112, 3327, 10175 } } },
+  [30] = { name = "Solak", subtitle = "Guardian of the Grove" },
   ```
-
-Instances are also named by **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places, towns and kingdoms. Some bosses only set it once the fight starts.
-
-```lua
-[30] = { name = "Solak", subtitle = "Guardian of the Grove" },
-```
 
 `subtitle` and `sprite` are optional for all of them. `sprite` is a name from the game's sprites (`id.Sprite`); the lodestone shields are the `THAS_SHIELD_...` ones.
 
 ## Mapping areas
 
-All kingdoms and most towns are traced outlines. These are the tools for tracing and checking them. They're in `src/mapping`, which only dev builds have.
+All kingdoms and most places are traced outlines. These are the tools for tracing and checking them. They're in `src/mapping`, which only dev builds have.
 
 ### Seeing the borders
 
-The plugin's **Map borders** tab is for this. Tick **Show area borders**, then tick the kingdoms, places and towns you want to see. None are ticked at first, as drawing them all is slow. Each area is drawn in its own colour, the same one every time:
+The plugin's **Map borders** tab is for this. Tick **Show area borders**, then tick the kingdoms and places you want to see. None are ticked at first, as drawing them all is slow. Each area is drawn in its own colour, the same one every time:
 
 - on the ground around you, in the main world (not in instances);
 - on [Better World Map](#better-world-map)'s map, if you've set it up as below, with each area's name at its middle.
@@ -79,7 +73,7 @@ Better World Map by jadefx is a world map plugin. With a few additions, your cop
 4. Each click prints the outline so far to the chat, ready to paste:
 
    ```
-   [Area Names] { name = "New town", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
+   [Area Names] { name = "New place", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
    ```
 
 5. Paste it into `world_areas.lua`, rename it and add its subtitle and sprite. Rebuild, tick the area on the **Map borders** tab and check it on the map and on the ground.
@@ -90,7 +84,7 @@ Tips:
 
 - Trace neighbouring kingdoms so their edges meet. A gap between them is in no kingdom, and an overlap goes to whichever comes first in the list.
 - Islands like Crandor and Mos Le'Harmless belong to no kingdom; leave them outside the outlines around them.
-- Smaller towns win inside bigger ones, so a town can be traced around the Grand Exchange or Falador Park without cutting them out.
+- Smaller places win inside bigger ones, so a town can be traced around the Grand Exchange without cutting it out.
 - Copy the printed line as text rather than retyping it; long outlines are easy to get a digit wrong in.
 
 ### Tracing in game

@@ -6,12 +6,12 @@
 -- on, and only the areas ticked on its "Map borders" tab, as drawing them all is slow.
 --
 -- Each area has its own colour, picked from its name, with its name written at its middle.
--- Kingdoms have thicker lines than towns and places. Corners marked in game with Area Names'
+-- Kingdoms have thicker lines than places. Corners marked in game with Area Names'
 -- "Mark corner" are white; corners clicked on this map are magenta:
 --   Ctrl+click        adds a corner where you click
 --   Ctrl+Shift+click  removes the last corner
 --   Ctrl+Alt+click    clears the corners
--- Each change logs the outline so far, ready to paste into Area Names' world_areas.towns.
+-- Each change logs the outline so far, ready to paste into Area Names' world_areas.places.
 
 local Map = require("map_math")
 local Areas = require("map_areas")
@@ -84,7 +84,7 @@ local function printOutline(corners)
     for _, corner in ipairs(corners) do
         points[#points + 1] = string.format("{ %d, %d }", corner[1], corner[2])
     end
-    print(string.format('[Area Names] { name = "New town", points = { %s } },', table.concat(points, ", ")))
+    print(string.format('[Area Names] { name = "New place", points = { %s } },', table.concat(points, ", ")))
 end
 
 -- main.create supplies the map layer; returns the overlay owner.
@@ -173,14 +173,14 @@ function M.new(parent)
         return along({ { x0, z0 }, { x1, z0 }, { x1, z1 }, { x0, z1 } }, step, true, 0)
     end
 
-    local function circle(town, step)
+    local function circle(place, step)
         local points = {}
-        local steps = math.max(12, math.ceil(2 * math.pi * town.radius / step))
+        local steps = math.max(12, math.ceil(2 * math.pi * place.radius / step))
         for s = 0, steps do
             local angle = 2 * math.pi * s / steps
             points[#points + 1] = {
-                town.at[1] + 0.5 + town.radius * math.cos(angle),
-                town.at[2] + 0.5 + town.radius * math.sin(angle),
+                place.at[1] + 0.5 + place.radius * math.cos(angle),
+                place.at[2] + 0.5 + place.radius * math.sin(angle),
             }
         end
         return points
@@ -196,8 +196,8 @@ function M.new(parent)
     end
 
     -- An area's shape on the open map: its lines and where its name goes, worked out the
-    -- first time and kept. Kingdoms and places are an outline or rectangles (named on the
-    -- first); towns are an outline or a circle.
+    -- first time and kept. Kingdoms are an outline or rectangles (named on the first);
+    -- places are an outline or a circle.
     local function shapeOf(kind, area, areaID, step, toMap)
         local key = table.concat({ areaID, kind, area.name, step }, ":")
         local shape = shapes[key]
@@ -208,7 +208,7 @@ function M.new(parent)
         if area.points then
             lines[1] = onMap(along(area.points, step, true, 0.5), toMap)
             x, z = middle(area.points)
-        elseif kind == "town" then
+        elseif area.at then
             lines[1] = onMap(circle(area, step), toMap)
             x, z = area.at[1], area.at[2]
         else
@@ -316,11 +316,6 @@ function M.new(parent)
         for _, place in ipairs(areas.places or {}) do
             if isShown(place.name) then
                 drawArea("place", place, THICKNESS, areaID, step, toMap, cx, cz, scale, w, h)
-            end
-        end
-        for _, area in ipairs(areas.towns or {}) do
-            if isShown(area.name) then
-                drawArea("town", area, THICKNESS, areaID, step, toMap, cx, cz, scale, w, h)
             end
         end
         -- Corners change while tracing, so they're moved onto the map every time; there are

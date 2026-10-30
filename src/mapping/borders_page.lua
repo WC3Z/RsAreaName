@@ -65,8 +65,8 @@ function borders_page.add(page)
             end
         })
 
-    -- For tracing a town's outline: stand on each corner in turn. The
-    -- outline so far is printed, ready to paste into world_areas.towns.
+    -- For tracing a place's outline: stand on each corner in turn. The
+    -- outline so far is printed, ready to paste into world_areas.places.
     page:AddSimpleButton("Mark corner", function ()
         local x, z = world_tracker.player_tile()
         if x == nil then
@@ -84,7 +84,6 @@ function borders_page.add(page)
 
     add_area_checkboxes(page, "Kingdoms", world_areas.kingdoms)
     add_area_checkboxes(page, "Places", world_areas.places)
-    add_area_checkboxes(page, "Towns", world_areas.towns)
 end
 
 return borders_page

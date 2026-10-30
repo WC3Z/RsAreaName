@@ -1,6 +1,6 @@
--- DEBUG: for tracing a town's outline in game. Each marked corner is where
+-- DEBUG: for tracing a place's outline in game. Each marked corner is where
 -- the player stands, and the whole outline so far is printed as a line ready
--- to paste into world_areas.towns.
+-- to paste into world_areas.places.
 local corner_marker = {}
 
 ---@type integer[][]
@@ -11,7 +11,7 @@ local function print_outline()
     for _, corner in ipairs(corners) do
         table.insert(points, string.format("{ %d, %d }", corner[1], corner[2]))
     end
-    print(string.format('[Area Names] { name = "New town", points = { %s } },', table.concat(points, ", ")))
+    print(string.format('[Area Names] { name = "New place", points = { %s } },', table.concat(points, ", ")))
 end
 
 -- The corners marked so far, in order.

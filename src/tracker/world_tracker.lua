@@ -23,19 +23,18 @@ local teleport_distance = 10
 local after_teleport_delay_ticks = 4
 -- Game ticks in a minute, for the "Repeat titles after" setting.
 local ticks_per_minute = 100
--- How many tiles outside a town or kingdom the player has to go to have left
+-- How many tiles outside a place or kingdom the player has to go to have left
 -- it, so walking along its edge doesn't show titles back and forth.
 local leave_margin = 5
 -- Instances are copied from the game world in blocks this many tiles wide.
 local copied_block_size = 8
 
--- A known instance, or a place.
----@type WorldInstance|WorldPlace?
+---@type WorldInstance?
+local current_instance = nil
+---@type WorldPlace?
 local current_place = nil
 ---@type WorldKingdom?
 local current_kingdom = nil
----@type WorldTown?
-local current_town = nil
 
 -- Game ticks left before titles show, after logging in or a loading screen.
 local ticks_until_titles = login_delay_ticks
@@ -44,7 +43,7 @@ local ticks_until_titles = login_delay_ticks
 local in_game = true
 -- Game ticks since the plugin started, and when each area's title was last shown.
 local tick = 0
----@type table<WorldInstance|WorldPlace|WorldTown|WorldKingdom, integer>
+---@type table<WorldInstance|WorldPlace|WorldKingdom, integer>
 local shown_at = {}
 -- Whether the player got where they are by teleport (or portal), so its
 -- title shows even if it was shown a moment ago.
@@ -80,7 +79,7 @@ end
 -- The known instance the player is in, if any. BOSS_INSTANCE_CURRENT_BOSS
 -- keeps its value after leaving, so it's only used inside an instance.
 ---@return WorldInstance?
-local function current_instance()
+local function instance_now()
     if not World.IsRegion() then
         return nil
     end
@@ -89,8 +88,8 @@ end
 
 -- Shows an area's title, unless the player walked in and it was shown less
 -- than the "Repeat titles after" setting ago, like when stepping out of a
--- town and straight back in. Arriving by teleport always shows it.
----@param area WorldInstance|WorldPlace|WorldTown|WorldKingdom
+-- place and straight back in. Arriving by teleport always shows it.
+---@param area WorldInstance|WorldPlace|WorldKingdom
 ---@param subtitle string?
 local function show(area, subtitle)
     local last_shown = shown_at[area]
@@ -102,8 +101,8 @@ local function show(area, subtitle)
     area_title.show(area.name, subtitle, area.sprite)
 end
 
--- Known instances and places come first, then towns, then kingdoms. Leaving
--- a town on its own shows nothing.
+-- Known instances come first, then places, then kingdoms. Leaving a place on
+-- its own shows nothing.
 local function on_tick()
     tick = tick + 1
     local player = Player.GetEntity()
@@ -125,11 +124,11 @@ local function on_tick()
         return
     end
 
-    local place = current_instance() or world_areas.place_at(x, z)
-    local town = world_areas.town_at(x, z)
-    if (town == nil and current_town ~= nil
-        and world_areas.is_near_town(current_town, x, z, leave_margin)) then
-        town = current_town
+    local instance = instance_now()
+    local place = world_areas.place_at(x, z)
+    if (place == nil and current_place ~= nil
+        and world_areas.is_near_place(current_place, x, z, leave_margin)) then
+        place = current_place
     end
     local kingdom = world_areas.kingdom_at(x, z)
     -- Still in the kingdom just left while near its edge. Only for outlines, as
@@ -139,18 +138,18 @@ local function on_tick()
         kingdom = current_kingdom
     end
 
-    if (place ~= nil and current_place ~= place) then
-        show(place, place.subtitle)
-    elseif (place == nil and town ~= nil and current_town ~= town) then
-        -- The town's own subtitle, or the kingdom it's in.
-        show(town, town.subtitle or (kingdom and kingdom.name))
-    elseif (place == nil and kingdom ~= nil and current_kingdom ~= kingdom) then
+    if (instance ~= nil and current_instance ~= instance) then
+        show(instance, instance.subtitle)
+    elseif (instance == nil and place ~= nil and current_place ~= place) then
+        -- The place's own subtitle, or the kingdom it's in.
+        show(place, place.subtitle or (kingdom and kingdom.name))
+    elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom) then
         show(kingdom)
     end
 
+    current_instance = instance
     current_place = place
     current_kingdom = kingdom
-    current_town = town
     arrived_by_teleport = false
 end
 
@@ -169,9 +168,9 @@ local function on_game_state_changed(event)
         area_title.hide()
     end
     if (event.newState == GameState.LOBBY or event.newState == GameState.LOGINSCREEN) then
+        current_instance = nil
         current_place = nil
         current_kingdom = nil
-        current_town = nil
         shown_at = {}
         last_x, last_z = nil, nil
         ticks_until_titles = login_delay_ticks
@@ -187,17 +186,17 @@ local function on_world_built()
 end
 
 -- The title for where the player is now, as it shows when walking in: the
--- place, or the town (with its own subtitle, or its kingdom), or the
--- kingdom. Nothing outside every area.
+-- known instance, or the place (with its own subtitle, or its kingdom), or
+-- the kingdom. Nothing outside every area.
 ---@return string? name
 ---@return string? subtitle
 ---@return string? sprite
 function world_tracker.current_title()
-    if current_place then
-        return current_place.name, current_place.subtitle, current_place.sprite
+    if current_instance then
+        return current_instance.name, current_instance.subtitle, current_instance.sprite
     end
-    if current_town then
-        return current_town.name, current_town.subtitle or (current_kingdom and current_kingdom.name), current_town.sprite
+    if current_place then
+        return current_place.name, current_place.subtitle or (current_kingdom and current_kingdom.name), current_place.sprite
     end
     if current_kingdom then
         return current_kingdom.name, nil, current_kingdom.sprite

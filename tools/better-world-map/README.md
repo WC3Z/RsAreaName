@@ -65,7 +65,7 @@ When Better World Map is updated, the additions are gone: start again from step 
    The corners are drawn in magenta. Each click prints the outline so far to the chat, ready to paste into Area Names' `world_areas.lua`:
 
    ```
-   [Area Names] { name = "New town", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
+   [Area Names] { name = "New place", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
    ```
 
    The clicks give real tiles, even where the map shows a region moved away from its real place (Havenhythe, Prifddinas, Anachronia).

@@ -17,7 +17,7 @@ local fine_per_tile = 512
 -- How many tiles around the player the borders are drawn, about as far as
 -- the game has the ground loaded.
 local view_distance = 48
--- How many tiles apart the points along a town's circle are.
+-- How many tiles apart the points along a place's circle are.
 local circle_step = 2
 -- How far above the ground the lines are, in fine units, so they don't sink
 -- into it.
@@ -125,20 +125,20 @@ local function outline_points(corners, closed)
     return points
 end
 
----@param town WorldTown
+---@param place WorldPlace
 ---@return number[][]
-local function circle_points(town)
-    local centre_x, centre_z = town.at[1] + 0.5, town.at[2] + 0.5
-    local steps = math.max(8, math.ceil(2 * math.pi * town.radius / circle_step))
+local function circle_points(place)
+    local centre_x, centre_z = place.at[1] + 0.5, place.at[2] + 0.5
+    local steps = math.max(8, math.ceil(2 * math.pi * place.radius / circle_step))
     local points = {}
     for step = 0, steps do
         local angle = 2 * math.pi * step / steps
-        table.insert(points, { centre_x + town.radius * math.cos(angle), centre_z + town.radius * math.sin(angle) })
+        table.insert(points, { centre_x + place.radius * math.cos(angle), centre_z + place.radius * math.sin(angle) })
     end
     return points
 end
 
----@param area WorldKingdom|WorldPlace
+---@param area WorldKingdom
 ---@param colour integer
 ---@param player_tile CoordGrid
 ---@param fine_offset Vector3
@@ -175,17 +175,12 @@ local function on_tick()
         end
     end
     for _, place in ipairs(world_areas.places) do
-        if areas_shown[place.name] then
-            add_rectangles(place, colour_of(place.name), player_tile, fine_offset)
-        end
-    end
-    for _, town in ipairs(world_areas.towns) do
-        -- How far the player is from the town's edge, inside or out.
-        local distance = areas_shown[town.name]
-            and math.abs(world_areas.distance_outside(town, player_tile.x, player_tile.z))
+        -- How far the player is from the place's edge, inside or out.
+        local distance = areas_shown[place.name]
+            and math.abs(world_areas.distance_outside(place, player_tile.x, player_tile.z))
         if distance and distance <= view_distance * math.sqrt(2) then
-            local points = town.points and outline_points(town.points, true) or circle_points(town)
-            add_lines(colour_of(town.name), points, player_tile, fine_offset)
+            local points = place.points and outline_points(place.points, true) or circle_points(place)
+            add_lines(colour_of(place.name), points, player_tile, fine_offset)
         end
     end
     local marked = corner_marker.corners()
