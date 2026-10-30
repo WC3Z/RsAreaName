@@ -362,6 +362,19 @@ world_areas.towns = {
         points = { { 2742, 3463 }, { 2741, 3510 }, { 2709, 3519 }, { 2682, 3503 }, { 2687, 3453 }, { 2736, 3453 } }
     },
     {
+        name = "Castle Camelot",
+        points = {
+            { 2744, 3482 },
+            { 2774, 3482 },
+            { 2774, 3504 },
+            { 2777, 3504 },
+            { 2778, 3511 },
+            { 2784, 3511 },
+            { 2784, 3518 },
+            { 2743, 3518 }
+        }
+    },
+    {
         name = "East Ardougne",
         sprite = "THAS_SHIELD_ARDOUNGE",
         subtitle = "Capital of Kandarin",
@@ -745,41 +758,6 @@ world_areas.towns = {
             { 3327, 2809 }
         }
     },
-    { name = "Port District", subtitle = "Menaphos", sprite = "THAS_SHIELD_MENAPHOS", at = { 3185, 2655 }, radius = 40 },
-    {
-        name = "Imperial District",
-        subtitle = "Menaphos",
-        sprite = "THAS_SHIELD_MENAPHOS",
-        at = { 3144, 2729 },
-        radius = 40
-    },
-    {
-        name = "Merchant District",
-        subtitle = "Menaphos",
-        sprite = "THAS_SHIELD_MENAPHOS",
-        points = {
-            { 3257, 2814 },
-            { 3213, 2816 },
-            { 3180, 2817 },
-            { 3166, 2830 },
-            { 3137, 2828 },
-            { 3125, 2819 },
-            { 3076, 2813 },
-            { 3064, 2686 },
-            { 3136, 2565 },
-            { 3224, 2551 },
-            { 3278, 2598 },
-            { 3274, 2660 },
-            { 3256, 2707 }
-        }
-    },
-    {
-        name = "Worker District",
-        subtitle = "Menaphos",
-        sprite = "THAS_SHIELD_MENAPHOS",
-        at = { 3156, 2794 },
-        radius = 35
-    },
     { name = "Bedabin Camp", subtitle = "Bedabin Nomads", at = { 3170, 3030 }, radius = 25 },
     -- Morytania
     { name = "Canifis", sprite = "THAS_SHIELD_CANIFIS", at = { 3493, 3488 }, radius = 28 },
@@ -851,8 +829,7 @@ world_areas.towns = {
             { 3523, 3381 },
             { 3533, 3382 },
             { 3533, 3386 },
-            { 3561, 3385 },
-            { 3562, 3389 }
+            { 3561, 3385 }
         }
     },
     {
@@ -1439,10 +1416,12 @@ world_areas.towns = {
     { name = "Lletya", at = { 2335, 3170 }, radius = 30 },
     {
         name = "City of Um",
+        subtitle = "Underworld",
         points = { { 1003, 1804 }, { 1114, 1880 }, { 1211, 1884 }, { 1196, 1711 }, { 1053, 1700 }, { 989, 1761 } }
     },
     {
         name = "Senntisten",
+        subtitle = "Capital of the Zarosian Empire",
         points = {
             { 1855, 1024 }, { 1857, 1152 }, { 2045, 1153 }, { 2046, 1225 }, { 2046, 1340 }, { 1855, 1342 },
             { 1855, 1407 }, { 1601, 1405 }, { 1600, 1090 }, { 1663, 1089 }, { 1665, 1027 }
@@ -1521,12 +1500,28 @@ world_areas.towns = {
     },
     {
         name = "TzHaar City",
+        subtitle = "Karamja",
         points = { { 4605, 5118 }, { 4609, 5182 }, { 4798, 5182 }, { 4798, 5057 }, { 4605, 5057 } }
     },
     {
         name = "Heart of Gielinor",
+        subtitle = "Kharidian Desert",
         points = { { 3091, 6855 }, { 3320, 6854 }, { 3322, 7098 }, { 3074, 7101 }, { 3079, 6856 } }
-    }
+    },
+    -- Mazcab
+    {
+        name = "Kanatah",
+        points = {
+            { 4333, 806 },
+            { 4358, 811 },
+            { 4385, 807 },
+            { 4399, 813 },
+            { 4428, 767 },
+            { 4339, 756 },
+            { 4331, 770 }
+        }
+    },
+    { name = "Otot", points = { { 4123, 899 }, { 4213, 897 }, { 4219, 940 }, { 4111, 942 } } }
 }
 
 ---@type WorldKingdom[]
@@ -2023,20 +2018,6 @@ world_areas.kingdoms = {
         points = { { 2294, 2633 }, { 2300, 2669 }, { 2286, 2691 }, { 2245, 2671 }, { 2243, 2654 }, { 2245, 2629 } }
     },
     {
-        name = "Castle Camelot",
-        points = {
-            { 2744, 3482 },
-            { 2774, 3482 },
-            { 2774, 3504 },
-            { 2777, 3504 },
-            { 2778, 3511 },
-            { 2784, 3511 },
-            { 2784, 3518 },
-            { 2743, 3518 },
-            { 2744, 3482 }
-        }
-    },
-    {
         name = "Ancient cavern",
         points = {
             { 1746, 5316 },
@@ -2053,10 +2034,6 @@ world_areas.kingdoms = {
     {
         name = "Chaos tunnels",
         points = {
-            { 2113, 5056 },
-            { 2174, 5057 },
-            { 2174, 5182 },
-            { 2113, 5182 },
             { 3153, 5435 },
             { 3316, 5441 },
             { 3332, 5451 },
@@ -2064,12 +2041,7 @@ world_areas.kingdoms = {
             { 3298, 5573 },
             { 3137, 5570 },
             { 3138, 5444 },
-            { 3143, 5434 },
-            { 3096, 5527 },
-            { 3075, 5551 },
-            { 3113, 5559 },
-            { 3125, 5541 },
-            { 3123, 5522 }
+            { 3143, 5434 }
         }
     },
     {
@@ -2120,20 +2092,7 @@ world_areas.kingdoms = {
             { 2932, 5186 }
         }
     },
-    { name = "Mazcab", points = { { 4097, 705 }, { 4534, 706 }, { 4509, 954 }, { 4452, 959 }, { 4097, 958 } } },
-    {
-        name = "Kanatah",
-        points = {
-            { 4333, 806 },
-            { 4358, 811 },
-            { 4385, 807 },
-            { 4399, 813 },
-            { 4428, 767 },
-            { 4339, 756 },
-            { 4331, 770 }
-        }
-    },
-    { name = "Otot", points = { { 4123, 899 }, { 4213, 897 }, { 4219, 940 }, { 4111, 942 } } }
+    { name = "Mazcab", points = { { 4097, 705 }, { 4534, 706 }, { 4509, 954 }, { 4452, 959 }, { 4097, 958 } } }
 }
 
 ---@param x      integer
