@@ -133,7 +133,7 @@ local function on_tick()
         return
     end
     if (last_x ~= nil and (x - last_x) ^ 2 + (z - last_z) ^ 2 > teleport_distance ^ 2) then
-        area_title.hide()
+        area_title.fade_away()
         ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
         arrived_by_teleport = true
     end
@@ -198,9 +198,9 @@ local function on_game_state_changed(event)
 end
 
 -- The world, or an instance, is built anew, with a loading screen: a title
--- that's showing goes away, and titles wait until it's over.
+-- that's showing fades away, and titles wait until it's over.
 local function on_world_built()
-    area_title.hide()
+    area_title.fade_away()
     ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
     arrived_by_teleport = true
 end

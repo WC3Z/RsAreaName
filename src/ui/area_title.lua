@@ -192,6 +192,17 @@ local shown_for
 -- How long the showing title fades in, stays and fades out, in seconds, read
 -- from the settings when it starts.
 local fade_in_seconds, stay_seconds, fade_out_seconds = 1.0, 3.0, 1.5
+-- How visible the showing title is, from 0 to 1.
+local shown_alpha = 0
+-- Whether the showing title is fading out early, to make way for another or
+-- because the player teleported. It takes switch_seconds in all, from how
+-- visible it was then (switch_from_alpha).
+local fading_away = false
+local switch_seconds, switch_seconds_left, switch_from_alpha = 0, 0, 0
+-- A title asked for while another was showing: { name, subtitle, sprite }. It
+-- shows once the old one has faded away.
+---@type { name: string, subtitle: string?, sprite: string? }?
+local next_title
 
 -- A line of text as wide as the screen, with its words in the middle.
 ---@param parent ui.Component
@@ -259,9 +270,37 @@ end
 -- Runs every frame. Adding up the time between frames keeps the fade the same
 -- speed whatever the frame rate.
 ---@param event DrawEventPayload
+---@param alpha number From 0 (invisible) to 1
+local function set_alpha(alpha)
+    shown_alpha = alpha
+    title.alpha = alpha
+    subtitle.alpha = alpha
+    if shield then
+        shield.alpha = alpha
+    end
+end
+
+local start_title
+
 local function on_draw(event)
     count_down_sound(event.timeDeltaSecs)
     if not shown_for or not title or not subtitle then
+        return
+    end
+    if fading_away then
+        switch_seconds_left = switch_seconds_left - event.timeDeltaSecs
+        if switch_seconds_left > 0 then
+            set_alpha(switch_from_alpha * switch_seconds_left / switch_seconds)
+            return
+        end
+        fading_away = false
+        local waiting = next_title
+        next_title = nil
+        if waiting then
+            start_title(waiting.name, waiting.subtitle, waiting.sprite)
+        else
+            area_title.hide()
+        end
         return
     end
     shown_for = shown_for + event.timeDeltaSecs
@@ -270,11 +309,7 @@ local function on_draw(event)
         area_title.hide()
         return
     end
-    title.alpha = alpha
-    subtitle.alpha = alpha
-    if shield then
-        shield.alpha = alpha
-    end
+    set_alpha(alpha)
 end
 
 local function destroy_components()
@@ -378,12 +413,12 @@ local function find_sprite(sprite_name)
     return found and sprite_id or nil
 end
 
--- Shows a name, starting the effect from the beginning, also if another name
--- is still showing.
+-- Starts showing a name from the beginning, straight away, in place of
+-- whatever is showing.
 ---@param name string
 ---@param subtitle_text string?
 ---@param sprite_name string? The area's shield, as its name in id.Sprite
-function area_title.show(name, subtitle_text, sprite_name)
+start_title = function (name, subtitle_text, sprite_name)
     -- First, as it can make the title, subtitle and shield anew.
     apply_settings()
     if not title or not subtitle or not shield then
@@ -404,12 +439,54 @@ function area_title.show(name, subtitle_text, sprite_name)
     subtitle.content = ((subtitle_text or ""):gsub("'", apostrophe))
     title.alpha = 0
     subtitle.alpha = 0
+    shown_alpha = 0
     title.hidden = false
     subtitle.hidden = false
     shown_for = 0
     if db.get_sound_on() then
         area_title.play_sound()
     end
+end
+
+-- Starts fading the showing title out, in the "Fade out" time, or less if it
+-- was only partly visible. Returns false when there's nothing to fade.
+---@return boolean
+local function begin_fading_away()
+    if not shown_for or shown_alpha <= 0 then
+        return false
+    end
+    if not fading_away then
+        local _, _, fade_out = db.get_title_timing()
+        switch_from_alpha = shown_alpha
+        switch_seconds = fade_out * shown_alpha
+        switch_seconds_left = switch_seconds
+        fading_away = switch_seconds > 0
+    end
+    return fading_away
+end
+
+-- Fades the showing title out early, like after a teleport, dropping any
+-- title waiting to show. A loading screen covers it anyway; without one, it
+-- doesn't just vanish.
+function area_title.fade_away()
+    next_title = nil
+    if not begin_fading_away() then
+        area_title.hide()
+    end
+end
+
+-- Shows a name, starting the effect from the beginning. If another name is
+-- still showing, it fades out first, and then this one fades in.
+---@param name string
+---@param subtitle_text string?
+---@param sprite_name string? The area's shield, as its name in id.Sprite
+function area_title.show(name, subtitle_text, sprite_name)
+    if begin_fading_away() then
+        -- Only the latest one asked for shows, if several come while fading.
+        next_title = { name = name, subtitle = subtitle_text, sprite = sprite_name }
+        return
+    end
+    start_title(name, subtitle_text, sprite_name)
 end
 
 -- Hides the title straight away, if one is showing.
@@ -422,6 +499,8 @@ function area_title.hide()
         shield.hidden = true
     end
     shown_for = nil
+    next_title = nil
+    fading_away = false
 end
 
 -- Shows an example title with the current settings, for the settings page.
