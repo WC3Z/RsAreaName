@@ -9,6 +9,7 @@ local world_areas = {}
 ---@field name      string
 ---@field subtitle? string      Shown under the name; without one, the kingdom it's in is
 ---@field sprite?   string      A sprite shown above the name, as its name in id.Sprite
+---@field arrival_sound? WorldArrivalSound A sound for arriving at one spot by teleport, instead of the one picked in the settings
 ---@field points?   integer[][] Its outline: the corners in order, each { world tile x, world tile z }. Places without one are a circle
 ---@field at?       integer[]   { world tile x, world tile z } of the circle's middle
 ---@field radius?   integer     The circle's radius, in tiles
@@ -18,6 +19,13 @@ local world_areas = {}
 ---@field sprite? string      A sprite shown above the name, as its name in id.Sprite
 ---@field bounds? integer[][] Rectangles, each { min x, min z, max x, max z } in world tiles (both ends included)
 ---@field points? integer[][] Its outline instead of rectangles, like a place's
+
+-- A sound played when the player teleports to (or within `radius` tiles of)
+-- one spot in a place, like respawning in Death's Office after dying.
+---@class WorldArrivalSound
+---@field sound  string    Its id in area_title.sounds
+---@field at     integer[] { world tile x, world tile z } of the spot
+---@field radius integer   How many tiles from the spot still count
 
 ---@class WorldInstance
 ---@field name      string
@@ -1741,7 +1749,13 @@ world_areas.places = {
     },
     -- Worlds of their own
     -- Map square 6, 10
-    { name = "Death's Office", points = { { 384, 640 }, { 447, 640 }, { 447, 703 }, { 384, 703 } } },
+    -- Where the player comes back after dying, so respawning there plays the
+    -- death jingle.
+    {
+        name = "Death's Office",
+        arrival_sound = { sound = "death_jingle", at = { 414, 674 }, radius = 3 },
+        points = { { 384, 640 }, { 447, 640 }, { 447, 703 }, { 384, 703 } }
+    },
     -- Map squares 50, 158 to 51, 158
     { name = "War's Retreat", points = { { 3200, 10112 }, { 3327, 10112 }, { 3327, 10175 }, { 3200, 10175 } } },
     {

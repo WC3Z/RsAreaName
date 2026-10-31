@@ -121,9 +121,9 @@ end
 ---@param page table
 function settings_controls.add_preview_button(page)
     page:AddSimpleButton("Preview", function ()
-        local name, subtitle, sprite = world_tracker.current_title()
+        local name, subtitle, sprite, sound = world_tracker.current_title()
         if name then
-            area_title.show(name, subtitle, sprite)
+            area_title.show(name, subtitle, sprite, sound)
         else
             area_title.preview()
         end

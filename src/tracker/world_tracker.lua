@@ -105,19 +105,38 @@ local function kingdom_shown(kingdom)
     return db.get_show_kind("kingdoms") and not db.is_area_hidden(kingdom.name)
 end
 
+-- The place's own sound for where the player arrived, if they teleported to
+-- its spot (see WorldArrivalSound), or nil for the one in the settings.
+---@param area WorldInstance|WorldPlace|WorldKingdom
+---@param x    integer
+---@param z    integer
+---@return string?
+local function arrival_sound(area, x, z)
+    local sound = area.arrival_sound
+    -- Death's Office's death jingle is the only arrival sound, so it's what
+    -- the setting is named after.
+    if not sound or not arrived_by_teleport or not db.get_death_jingle_on() then
+        return nil
+    end
+    local near = (x - sound.at[1]) ^ 2 + (z - sound.at[2]) ^ 2 <= sound.radius ^ 2
+    return near and sound.sound or nil
+end
+
 -- Shows an area's title, unless the player walked in and it was shown less
 -- than the "Repeat titles after" setting ago, like when stepping out of a
 -- place and straight back in. Arriving by teleport always shows it.
 ---@param area WorldInstance|WorldPlace|WorldKingdom
 ---@param subtitle string?
-local function show(area, subtitle)
+---@param x        integer The player's world tile
+---@param z        integer
+local function show(area, subtitle, x, z)
     local last_shown = shown_at[area]
     local repeat_ticks = db.get_repeat_minutes() * ticks_per_minute
     if not arrived_by_teleport and last_shown and tick - last_shown < repeat_ticks then
         return
     end
     shown_at[area] = tick
-    area_title.show(area.name, subtitle, area.sprite)
+    area_title.show(area.name, subtitle, area.sprite, arrival_sound(area, x, z))
 end
 
 -- Known instances come first, then places, then kingdoms. Leaving a place on
@@ -158,13 +177,13 @@ local function on_tick()
     end
 
     if (instance ~= nil and current_instance ~= instance) then
-        show(instance, instance.subtitle)
+        show(instance, instance.subtitle, x, z)
     elseif (instance == nil and place ~= nil and current_place ~= place) then
         -- The place's own subtitle, or the kingdom it's in.
-        show(place, place.subtitle or (kingdom and kingdom.name))
+        show(place, place.subtitle or (kingdom and kingdom.name), x, z)
     elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom
         and kingdom_shown(kingdom)) then
-        show(kingdom)
+        show(kingdom, nil, x, z)
     end
 
     current_instance = instance
@@ -213,10 +232,11 @@ end
 ---@return string? sprite
 function world_tracker.current_title()
     if current_instance then
-        return current_instance.name, current_instance.subtitle, current_instance.sprite
+        return current_instance.name, current_instance.subtitle, current_instance.sprite, nil
     end
     if current_place then
-        return current_place.name, current_place.subtitle or (current_kingdom and current_kingdom.name), current_place.sprite
+        return current_place.name, current_place.subtitle or (current_kingdom and current_kingdom.name),
+            current_place.sprite, nil
     end
     if current_kingdom then
         return current_kingdom.name, nil, current_kingdom.sprite

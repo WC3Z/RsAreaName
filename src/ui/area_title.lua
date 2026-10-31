@@ -68,70 +68,30 @@ area_title.colours = {
     { id = "custom", label = "Custom" },
 }
 
--- Game sounds, from id.Sound. A sound with seconds is stopped after that long,
--- to only play its start.
+-- Game sounds, from id.Sound, listed alphabetically as they show on the Sound
+-- tab. A sound with seconds is stopped after that long, to only play its
+-- start.
 area_title.sounds = {
-    { id = "church_bell", label = "Church bell", sound = id.Sound._200_ATMOSPHERIC_CHURCH_BELL },
-    { id = "fanfare", label = "Fanfare", sound = id.Sound.CHAMPIONS_SCROLL_FANFARE },
-    { id = "gong", label = "God Wars gong", sound = id.Sound.GODWARS_GONG },
-    { id = "battle_horn", label = "Battle horn", sound = id.Sound.OMGE_DISTANT_BATTLEHORN_1 },
-    { id = "teleport_boom", label = "Teleport boom", sound = id.Sound.HOME_TELEPORT_2012_PART_7_BOOM },
-    { id = "howling_drone", label = "Howling drone", sound = id.Sound._200_ATMOSPHERIC_HOWLING_DRONE_1 },
-    -- Leagues
-    { id = "league_master_task", label = "League master", sound = id.Sound.LEAGUE2_MASTER_TASK_COMPLETE },
-    { id = "league_elite_task", label = "League elite", sound = id.Sound.LEAGUE2_ELITE_TASK_COMPLETE },
-    { id = "league_relic", label = "Relic unlock", sound = id.Sound.LEAGUES_25_RELIC_UNLOCK_EXPLOSION },
-    { id = "league_relic_portal", label = "Relic portal", sound = id.Sound.LEAGUES_25_RELIC_UNLOCK_PORTAL },
-    { id = "league_tier", label = "Tier select", sound = id.Sound.LEAGUES_25_UI_TIER_SEL_01 },
-    { id = "league_teleport", label = "League tele", sound = id.Sound.LEAGUE2_TELE_APPEAR_01 },
-    -- Others
-    { id = "task_complete", label = "Task complete", sound = id.Sound.TASK_COMPLETE_01 },
-    { id = "elder_choir", label = "Elder choir", sound = id.Sound.QUEST_ENDGAME_ELDER_CHOIR_REPLY },
-    { id = "elder_ritual", label = "Elder ritual", sound = id.Sound.SUM2_ELDER_RITUAL },
-    { id = "boss_drum", label = "Boss drum", sound = id.Sound.FT3_BOSS_DRUM_1 },
-    { id = "thunder", label = "Thunder", sound = id.Sound.LOY_THUNDER },
-    { id = "ancient_teleport", label = "Ancient tele", sound = id.Sound.WILDERNESS_PORTAL_ANCIENT_MAGE_TELEPORT },
-    { id = "ge_trade_ok", label = "GE offer done", sound = id.Sound.GE_TRADE_OK },
-    { id = "ge_collect_coins", label = "GE coins", sound = id.Sound.GE_COLLECT_COINS },
-    { id = "ge_collect_items", label = "GE items", sound = id.Sound.GE_COLLECT_ITEMS },
-    { id = "ge_trade_error", label = "GE trade error", sound = id.Sound.GE_TRADE_ERROR },
-    { id = "research_finished", label = "Research done", sound = id.Sound.ARCH_RESEARCH_FINISHED },
-    -- Amascut
+    -- The default (see db.get_sound).
+    { id = "achievement", label = "Achievement", sound = id.Sound.CHEEVO_ACHIEVEMENT_COMPLETE_SOUND_V3 },
     { id = "amascut_meow", label = "Amascut meow", sound = id.Sound.DQB_AMAS_EMOTE_VO_DAMAGE_03 },
     { id = "amascut_snarl", label = "Amascut snarl", sound = id.Sound.DQB_AMAS_EMOTE_VO_SNARLS_01 },
-    -- Fanfares, stings, bells, horns and atmosphere
-    { id = "theatre_fanfare", label = "Theatre fanfare", sound = id.Sound.CLAN_THEATRE_MUSIC_FANFARE },
-    { id = "crafting_fanfare", label = "Crafting fanfare", sound = id.Sound.SKILLCAPE_EMOTE_CRAFTING_FANFARE },
-    { id = "achievement", label = "Achievement", sound = id.Sound.CHEEVO_ACHIEVEMENT_COMPLETE_SOUND_V3 },
-    { id = "quest_complete", label = "Quest complete", sound = id.Sound.TUT7_UI_QUESTCOMPLETE },
-    { id = "dar_quest_complete", label = "Desert quest done", sound = id.Sound.DAR_MU_HET_QUEST_COMPLETE_01 },
-    { id = "clue_found", label = "Clue found", sound = id.Sound.OPN_CLUE_FOUND },
-    { id = "level_up_sparkle", label = "Level up sparkle", sound = id.Sound.LEVEL_UP_SPARKLE },
-    { id = "discovery", label = "Discovery", sound = id.Sound.INVENT_DISCOVERY_SUCCESS },
-    { id = "entrance_sting", label = "Entrance sting", sound = id.Sound.PRE_RELEASE_ENTRACE_STING },
-    { id = "memory_sting", label = "Memory sting", sound = id.Sound.DOC_MOIA_MEMORY_STING_JINGLE },
-    { id = "um_bridge_sting", label = "Um bridge sting", sound = id.Sound.NECRO_AMB_UM_BRIDGE_WIND_STING_01 },
-    { id = "well_of_souls", label = "Well of Souls", sound = id.Sound.NECRO_AMB_WELL_OF_SOULS_STINGS_01 },
-    { id = "voices_of_seren", label = "Voices of Seren", sound = id.Sound.TREASURE_HUNTER_VOICES_OF_SEREN_START },
-    { id = "prifddinas_chimes", label = "Prifddinas chimes", sound = id.Sound.ELFCITY_ENTRANCE_CHIMES },
-    { id = "elf_city_bells", label = "Elf city bells", sound = id.Sound.ELF_CITY_BELLS_1 },
-    { id = "single_chime", label = "Single chime", sound = id.Sound.TARDDIAD_SINGLE_CHIME_1 },
-    { id = "town_crier_bell", label = "Town crier bell", sound = id.Sound.TOWN_CRIER_BELL_RING_1 },
-    { id = "church_bell_2", label = "Church bell 2", sound = id.Sound.CHURCH_BELL },
-    { id = "fortress_bells", label = "Fortress bells", sound = id.Sound.NOMEL_FORTRESS_BELLS_1 },
-    { id = "arena_horn", label = "Arena horn", sound = id.Sound.DOM_ARENA_BLOW_HORN },
-    { id = "hornblower", label = "Hornblower", sound = id.Sound.OMGE_HORNBLOWER },
-    { id = "prayer_choir", label = "Prayer choir", sound = id.Sound.SKILLCAPE_EMOTE_PRAYER_CHOIR1 },
-    { id = "inspiration_choir", label = "Inspiration choir", sound = id.Sound.INVENT_PLAYER_INSPIRATION_SPOTANIM_CHOIR },
-    { id = "ominous_bass", label = "Ominous bass", sound = id.Sound.TARDDIAD_OMINOUS_BASS_1 },
-    { id = "ominous_drone", label = "Ominous drone", sound = id.Sound.OMGE_OMINOUS_DRONE_1 },
-    { id = "gwd_thunder", label = "God Wars thunder", sound = id.Sound.GW2_THUNDER_1 },
-    { id = "wilderness_thunder", label = "Wilderness thunder", sound = id.Sound.WILDERNESS_THUNDER_CLAP_1 },
-    { id = "qbd_reveal", label = "Queen Black Dragon reveal", sound = id.Sound.QBD_BELLYOFTHEBEAST_REVEAL },
-    { id = "tree_reveal", label = "Tree reveal", sound = id.Sound.EYEGLO_TREE_REVEAL },
-    { id = "portal_open", label = "Portal open", sound = id.Sound.WIZARDS_TOWER_RUNECRAFT_PORTAL_OPEN },
-    { id = "crystal_whoosh", label = "Crystal whoosh", sound = id.Sound.MTX74_CRYSTAL_WHOOSH },
+    { id = "bond_fanfare", label = "Bond fanfare", sound = id.Sound.RS_BONDS_FANFARE_1 },
+    { id = "carousel_ding", label = "Carousel ding", sound = id.Sound.MTXFEST17_CAROUSEL_DINGNOCHEER_01 },
     { id = "death_jingle", label = "Death jingle", sound = id.Sound.DEATH2_JINGLE },
+    { id = "harp_run", label = "Harp run", sound = id.Sound.HW10_HARP_047_060 },
+    { id = "harp_strum", label = "Harp strum", sound = id.Sound.HW10_HARP_STRUM_01 },
+    { id = "lute_chord", label = "Lute chord", sound = id.Sound.SIGHERO_LUTE_CHORD_1 },
+    { id = "lute_chord_2", label = "Lute chord 2", sound = id.Sound.SIGHERO_LUTE_CHORD_2 },
+    { id = "lute_chord_3", label = "Lute chord 3", sound = id.Sound.SIGHERO_LUTE_CHORD_3 },
+    { id = "lute_chord_4", label = "Lute chord 4", sound = id.Sound.SIGHERO_LUTE_CHORD_4 },
+    { id = "memory_bell", label = "Memory bell", sound = id.Sound.QUEST_CHAROS_ENTER_MEMORY_BELL },
+    { id = "research_finished", label = "Research done", sound = id.Sound.ARCH_RESEARCH_FINISHED },
+    { id = "soft_sleigh_bells", label = "Soft sleigh bells", sound = id.Sound.SANTAYAK_SOFT_BELLS_01 },
+    { id = "spooky_piano", label = "Spooky piano", sound = id.Sound.SPOOKY_PIANO_1 },
+    { id = "thok_fanfare", label = "Thok fanfare", sound = id.Sound.DM_THOK_ESCAPE_FANFARE },
+    { id = "valentines_progress", label = "Valentine's progress", sound = id.Sound.VALENTINES_2021_PROGRESS_COMPLETE },
+    { id = "valentines_task", label = "Valentine's task done", sound = id.Sound.VALENTINES_2021_TASK_COMPLETE }
 }
 
 -- Sounds the game doesn't have, like a number past the last snarl, are left
@@ -201,7 +161,7 @@ local fading_away = false
 local switch_seconds, switch_seconds_left, switch_from_alpha = 0, 0, 0
 -- A title asked for while another was showing: { name, subtitle, sprite }. It
 -- shows once the old one has faded away.
----@type { name: string, subtitle: string?, sprite: string? }?
+---@type { name: string, subtitle: string?, sprite: string?, sound: string? }?
 local next_title
 
 -- A line of text as wide as the screen, with its words in the middle.
@@ -247,12 +207,31 @@ local function alpha_after(seconds)
     return nil
 end
 
+-- Stops a sound. Stopping one that has already finished is an error in game
+-- (the docs say it does nothing), so that's caught.
+---@param sound audio.SoundInstance
+local function stop_sound(sound)
+    pcall(function () sound:Stop() end)
+end
+
 -- The sound playing with a time limit (see area_title.sounds), and how many
 -- seconds it has left.
 ---@type audio.SoundInstance?
 local limited_sound
 ---@type number
 local sound_seconds_left = 0
+-- The sound the showing title started, to stop it with the title if the
+-- player wants (db.get_stop_sound_with_title).
+---@type audio.SoundInstance?
+local title_sound
+
+-- Stops the title's sound, if the player wants it to end with the title.
+local function stop_title_sound()
+    if title_sound and db.get_stop_sound_with_title() then
+        stop_sound(title_sound)
+    end
+    title_sound = nil
+end
 
 -- Counts down a limited sound's time, and stops it once it's up.
 ---@param seconds_passed number
@@ -262,7 +241,7 @@ local function count_down_sound(seconds_passed)
     end
     sound_seconds_left = sound_seconds_left - seconds_passed
     if sound_seconds_left <= 0 then
-        limited_sound:Stop()
+        stop_sound(limited_sound)
         limited_sound = nil
     end
 end
@@ -297,7 +276,7 @@ local function on_draw(event)
         local waiting = next_title
         next_title = nil
         if waiting then
-            start_title(waiting.name, waiting.subtitle, waiting.sprite)
+            start_title(waiting.name, waiting.subtitle, waiting.sprite, waiting.sound)
         else
             area_title.hide()
         end
@@ -367,16 +346,39 @@ local function apply_settings()
     subtitle.rgb = rgb_of(colour)
 end
 
--- Plays the sound from the settings, even with sounds turned off, to hear it
--- on the settings page.
-function area_title.play_sound()
-    local sound = find(area_title.sounds, db.get_sound())
+-- The sound with the given id in area_title.sounds, or nil if it isn't there
+-- (like one removed from the list).
+---@param sound_id string?
+local function sound_with_id(sound_id)
+    for _, sound in ipairs(area_title.sounds) do
+        if sound.id == sound_id then
+            return sound
+        end
+    end
+    return nil
+end
+
+-- Plays a sound, even with sounds turned off, to hear it on the settings page:
+-- the one with the given id (nothing if it isn't in the list any more), or
+-- without one, the one picked in the settings.
+---@param sound_id string? An id in area_title.sounds
+---@return audio.SoundInstance? playing
+function area_title.play_sound(sound_id)
+    local sound
+    if sound_id then
+        sound = sound_with_id(sound_id)
+        if not sound then
+            return nil
+        end
+    else
+        sound = find(area_title.sounds, db.get_sound())
+    end
     if not sound.sound then
-        return
+        return nil
     end
     -- A sound still playing from before is cut short for the new one.
     if limited_sound then
-        limited_sound:Stop()
+        stop_sound(limited_sound)
         limited_sound = nil
     end
     local playing = audio.Play(sound.sound)
@@ -384,6 +386,7 @@ function area_title.play_sound()
         limited_sound = playing
         sound_seconds_left = sound.seconds
     end
+    return playing
 end
 
 function area_title.start()
@@ -418,7 +421,8 @@ end
 ---@param name string
 ---@param subtitle_text string?
 ---@param sprite_name string? The area's shield, as its name in id.Sprite
-start_title = function (name, subtitle_text, sprite_name)
+---@param sound_id string? A sound to play instead of the one in the settings, even with those turned off
+start_title = function (name, subtitle_text, sprite_name, sound_id)
     -- First, as it can make the title, subtitle and shield anew.
     apply_settings()
     if not title or not subtitle or not shield then
@@ -443,8 +447,13 @@ start_title = function (name, subtitle_text, sprite_name)
     title.hidden = false
     subtitle.hidden = false
     shown_for = 0
-    if db.get_sound_on() then
-        area_title.play_sound()
+    stop_title_sound()
+    if sound_id then
+        -- A place's own sound, like the death jingle, has its own setting
+        -- (checked before it gets here) and always plays to its end.
+        area_title.play_sound(sound_id)
+    elseif db.get_sound_on() then
+        title_sound = area_title.play_sound()
     end
 end
 
@@ -480,13 +489,14 @@ end
 ---@param name string
 ---@param subtitle_text string?
 ---@param sprite_name string? The area's shield, as its name in id.Sprite
-function area_title.show(name, subtitle_text, sprite_name)
+---@param sound_id string? A sound to play instead of the one in the settings
+function area_title.show(name, subtitle_text, sprite_name, sound_id)
     if begin_fading_away() then
         -- Only the latest one asked for shows, if several come while fading.
-        next_title = { name = name, subtitle = subtitle_text, sprite = sprite_name }
+        next_title = { name = name, subtitle = subtitle_text, sprite = sprite_name, sound = sound_id }
         return
     end
-    start_title(name, subtitle_text, sprite_name)
+    start_title(name, subtitle_text, sprite_name, sound_id)
 end
 
 -- Hides the title straight away, if one is showing.
@@ -501,6 +511,7 @@ function area_title.hide()
     shown_for = nil
     next_title = nil
     fading_away = false
+    stop_title_sound()
 end
 
 -- Shows an example title with the current settings, for the settings page.
@@ -512,7 +523,7 @@ function area_title.stop()
     Event.Draw.Unsubscribe(subscription_name)
     destroy_components()
     if limited_sound then
-        limited_sound:Stop()
+        stop_sound(limited_sound)
         limited_sound = nil
     end
     made_at_height, made_at_gap = nil, nil

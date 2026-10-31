@@ -92,16 +92,35 @@ local function add_text_page(page)
 end
 
 ---@param page table
+-- The sounds as a list of radio buttons, which the tab scrolls, rather than a
+-- dropdown, since there are a lot of them. Play is above the list, so it
+-- stays in reach.
 local function add_sound_page(page)
     settings_controls.add_sound_toggle(page)
-    settings_controls.add_choice(page, "Sound", area_title.sounds, db.get_sound(), function (sound)
-        db.set_sound(sound)
-        -- So the sound can be heard while picking one.
-        area_title.play_sound()
-    end)
+    settings_controls.add_toggle(page, "Stop the sound with the title",
+        "Cuts the sound off when the title is gone. A playing sound can't be faded, so it's a hard stop. Off: sounds always play to the end",
+        db.get_stop_sound_with_title(), db.set_stop_sound_with_title)
+    settings_controls.add_toggle(page, "Play the death jingle on death",
+        "Plays the death jingle when you respawn in Death's Office after dying, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
+        db.get_death_jingle_on(), db.set_death_jingle_on)
     page:AddSimpleButton("Play", function ()
         area_title.play_sound()
     end)
+    page:AddTitle("Sound")
+    local items = {}
+    for _, sound in ipairs(area_title.sounds) do
+        table.insert(items, { text = sound.label, value = sound.id })
+    end
+    page:AddRadioButton(items, {
+        selectedValue = db.get_sound(),
+        onChange = function (_, sound)
+            if sound then
+                db.set_sound(sound)
+                -- So the sound can be heard while picking one.
+                area_title.play_sound()
+            end
+        end
+    })
 end
 
 -- The kinds of area that can be turned off as a whole, as on the Areas tab.

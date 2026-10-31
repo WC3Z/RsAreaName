@@ -16,6 +16,8 @@ local stay_key = "stay_seconds"
 local fade_out_key = "fade_out_seconds"
 local title_height_key = "title_height_percent"
 local teleport_delay_key = "teleport_delay_ticks"
+local stop_sound_with_title_key = "stop_sound_with_title"
+local death_jingle_on_key = "death_jingle_on"
 local hidden_area_key_prefix = "hidden_area."
 local hidden_instance_key_prefix = "hidden_instance."
 
@@ -249,6 +251,30 @@ end
 ---@param ticks integer
 function Db.set_teleport_delay_ticks(ticks)
     PersistentDB:SetInt(teleport_delay_key, ticks)
+end
+
+-- Whether a title's sound stops when the title is gone, rather than playing
+-- to its end. Off until turned on.
+---@return boolean
+function Db.get_stop_sound_with_title()
+    return get_bool(stop_sound_with_title_key, false)
+end
+
+---@param stop boolean
+function Db.set_stop_sound_with_title(stop)
+    PersistentDB:SetBool(stop_sound_with_title_key, stop)
+end
+
+-- Whether respawning in Death's Office after dying plays the death jingle.
+-- On until turned off.
+---@return boolean
+function Db.get_death_jingle_on()
+    return get_bool(death_jingle_on_key, true)
+end
+
+---@param on boolean
+function Db.set_death_jingle_on(on)
+    PersistentDB:SetBool(death_jingle_on_key, on)
 end
 
 return Db
