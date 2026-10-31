@@ -15,7 +15,7 @@ A RuneScape 3 plugin that announces where you are, like the area titles in the S
 
 The plugin's page (its ribbon icon) has the most used ones: **Font**, **Font size**, **Play a sound**, **Preview** (the title for where you are now, or an example when that's nowhere named), and **Open settings** for the rest. The settings window has three tabs:
 
-- **Text**: **Font**, **Font size** (greyed out for fonts that come in just one size), **Colour** with a **Custom colour** picker, **Show shields** (the lodestone shield above the name), **Height on screen**, and how long the title takes to **fade in**, **stays** and takes to **fade out**.
+- **Text**: **Font**, **Font size** (greyed out for fonts that come in just one size), **Colour** with a **Custom colour** picker, **Show shields** (the lodestone shield above the name), **Height on screen**, how long the title takes to **fade in**, **stays** and takes to **fade out**, and the **Delay after teleport** (how long titles wait after a teleport so they don't play under its loading screen; 0 shows them at once, for when loading screens are off).
 - **Sound**: **Play a sound** and which **Sound**. Needs the game's sound effects turned on.
 - **Areas**: which kinds of area get titles (kingdoms, places, boss fights, heists), **Repeat titles after**: how long before an area's title shows again when you walk back in (0 shows it every time), and a checkbox for every kingdom, place, boss fight and heist. Untick one to stop its title; inside an unticked place, a bigger place around it shows instead. All of these are saved between sessions.
 
@@ -95,10 +95,28 @@ To trace by walking instead, press **Mark corner** on the **Map borders** tab at
 
 The [RuneScape Wiki](https://runescape.wiki) lists coordinates for many locations too. A few wiki pages (like Misthalin, Fremennik Province and the Grand Exchange) have an `{{Area map}}` outline in their infobox, whose points can be copied as they are. Careful with coordinates from the wiki though: the wiki's map (like the world map) shows some places moved away from their real tiles. Havenhythe's wiki coordinates are 704, 1792 more than its real ones, and Prifddinas and Anachronia are moved too. The tile **Mark corner** prints is always the real one.
 
+## Shields
+
+The lodestone shields (`THAS_SHIELD_...`) come with a separate alpha mask (`..._ALPHA`) that the game applies itself, but plugins can't, so shown as they are they have a gradient out to their square edges. The plugin ships merged copies in `resources/shields/` and shows those instead; shields without one fall back to the game's sprite.
+
+To add one:
+
+1. Export the shield and its mask as PNGs, for example with the [RuneApps model viewer](https://runeapps.org/modelviewer). Name them after the sprite without `THAS_SHIELD_`, in lower case: `varrock.png` and `varrock_alpha.png`.
+2. Put them in `debug/shields/` and run:
+
+   ```sh
+   cd tools/shields
+   npm install
+   node merge.cjs
+   ```
+
+   This writes `resources/shields/THAS_SHIELD_VARROCK.png`.
+3. Rebuild, and restart the game client: it only finds new files in `resources/` when it starts, so reloading the plugin isn't enough.
+
 ## Building
 
 ```sh
-./build.sh           # copies the plugin into Area-Names/
+./build.sh           # copies the plugin (main.lua, plugin.json, src, resources) into Area-Names/
 ./build.sh release   # for publishing, without the mapping tools (src/mapping)
 ```
 

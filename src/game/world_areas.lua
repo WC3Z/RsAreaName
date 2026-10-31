@@ -2124,6 +2124,7 @@ world_areas.kingdoms = {
     },
     {
         name = "Kandarin",
+        sprite = "RS3_WORLDMAP_REGION_SHIELD_KANDARIN",
         points = {
             { 2780, 3584 },
             { 2681, 3601 },
@@ -2247,6 +2248,7 @@ world_areas.kingdoms = {
     },
     {
         name = "Morytania",
+        sprite = "RS3_WORLDMAP_REGION_SHIELD_MORYTANIA",
         points = {
             { 3423, 3200 },
             { 3422, 3271 },
@@ -2271,6 +2273,7 @@ world_areas.kingdoms = {
     -- Its north-east edge meets Morytania.
     {
         name = "Kharidian Desert",
+        sprite = "RS3_WORLDMAP_REGION_SHIELD_KHARIDIAN_DESERT",
         points = {
             { 3256, 3164 },
             { 3269, 3211 },

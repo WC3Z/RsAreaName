@@ -359,13 +359,20 @@ function area_title.start()
     Event.Draw.Subscribe(subscription_name, on_draw)
 end
 
--- The sprite with the given name in id.Sprite, or nil if the game doesn't
--- have it.
+-- The image to show for the sprite with the given name: the plugin's own copy
+-- in resources/shields if it has one (lodestone shields, merged with their
+-- alpha masks, see tools/shields), or else the game's sprite. nil if neither
+-- exists.
 ---@param sprite_name string?
----@return integer?
+---@return integer|PluginResource|nil
 local function find_sprite(sprite_name)
     if not sprite_name then
         return nil
+    end
+    local shields = Plugin.resources and Plugin.resources.shields
+    local own = shields and (shields[sprite_name] or shields[sprite_name .. ".png"])
+    if own then
+        return own
     end
     local found, sprite_id = pcall(function() return id.Sprite[sprite_name] end)
     return found and sprite_id or nil
@@ -382,10 +389,11 @@ function area_title.show(name, subtitle_text, sprite_name)
     if not title or not subtitle or not shield then
         return
     end
-    local sprite_id = db.get_show_shield() and find_sprite(sprite_name)
-    shield.hidden = not sprite_id
-    if sprite_id then
-        shield.spriteID = sprite_id
+    local image = db.get_show_shield() and find_sprite(sprite_name)
+    shield.hidden = not image
+    if image then
+        -- Takes either a game sprite id or a plugin resource.
+        shield.sprite = image
         shield.alpha = 0
     end
     fade_in_seconds, stay_seconds, fade_out_seconds = db.get_title_timing()

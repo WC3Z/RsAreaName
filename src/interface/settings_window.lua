@@ -18,6 +18,8 @@ local function game_area()
     return ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__GAME_AREA)
 end
 
+local seconds_per_tick = 0.6
+
 ---@param seconds number
 ---@return string
 local function seconds_text(seconds)
@@ -76,6 +78,15 @@ local function add_text_page(page)
         value = fade_out,
         tooltip = "How long the title takes to disappear",
         on_change = db.set_fade_out,
+    })
+    settings_controls.add_slider(page, {
+        label = function (ticks) return "Delay after teleport: " .. seconds_text(ticks * seconds_per_tick) end,
+        min = 0,
+        max = 5,
+        step = 1,
+        value = db.get_teleport_delay_ticks(),
+        tooltip = "How long titles wait after a teleport, so they don't play under its loading screen. With loading screens turned off, 0 shows them at once",
+        on_change = db.set_teleport_delay_ticks,
     })
     settings_controls.add_preview_button(page)
 end

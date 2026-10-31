@@ -13,14 +13,11 @@ local world_built_subscription = "world_names_world_built"
 local login_delay_ticks = 4
 -- Game ticks to wait after a loading screen before titles show again.
 local after_loading_delay_ticks = 2
--- Game ticks to wait after the world is built anew, like after a teleport,
--- whose loading screen doesn't change the game state.
-local after_world_built_delay_ticks = 4
 -- A move of more than this many tiles in one game tick is a teleport (walking
--- and running move at most 2), and titles wait this many game ticks after one,
--- as its loading screen comes after the player has moved.
+-- and running move at most 2). After one, and after the world is built anew,
+-- titles wait the "Delay after teleport" setting, as a teleport's loading
+-- screen comes after the player has moved and doesn't change the game state.
 local teleport_distance = 10
-local after_teleport_delay_ticks = 4
 -- Game ticks in a minute, for the "Repeat titles after" setting.
 local ticks_per_minute = 100
 -- How many tiles outside a place or kingdom the player has to go to have left
@@ -137,7 +134,7 @@ local function on_tick()
     end
     if (last_x ~= nil and (x - last_x) ^ 2 + (z - last_z) ^ 2 > teleport_distance ^ 2) then
         area_title.hide()
-        ticks_until_titles = math.max(ticks_until_titles, after_teleport_delay_ticks)
+        ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
         arrived_by_teleport = true
     end
     last_x, last_z = x, z
@@ -204,7 +201,7 @@ end
 -- that's showing goes away, and titles wait until it's over.
 local function on_world_built()
     area_title.hide()
-    ticks_until_titles = math.max(ticks_until_titles, after_world_built_delay_ticks)
+    ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
     arrived_by_teleport = true
 end
 

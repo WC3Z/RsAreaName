@@ -15,6 +15,7 @@ local fade_in_key = "fade_in_seconds"
 local stay_key = "stay_seconds"
 local fade_out_key = "fade_out_seconds"
 local title_height_key = "title_height_percent"
+local teleport_delay_key = "teleport_delay_ticks"
 local hidden_area_key_prefix = "hidden_area."
 local hidden_instance_key_prefix = "hidden_instance."
 
@@ -236,6 +237,18 @@ end
 function Db.set_instance_hidden(instance_id, hidden)
     hidden_instances[instance_id] = hidden
     PersistentDB:SetBool(hidden_instance_key_prefix .. instance_id, hidden)
+end
+
+-- How many game ticks (0.6 seconds each) titles wait after a teleport, so
+-- they don't play under its loading screen. 4 until changed.
+---@return integer
+function Db.get_teleport_delay_ticks()
+    return PersistentDB:GetInt(teleport_delay_key) or 4
+end
+
+---@param ticks integer
+function Db.set_teleport_delay_ticks(ticks)
+    PersistentDB:SetInt(teleport_delay_key, ticks)
 end
 
 return Db
