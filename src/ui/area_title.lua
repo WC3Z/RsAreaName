@@ -1,20 +1,11 @@
 -- The area's name across the middle of the screen, with a smaller subtitle
--- under it, fading in, staying a while and fading out again. Its font, size,
--- colour and sound are the player's settings (see db).
+-- under it, fading in, staying a while and fading out again. Its look, timing,
+-- height on screen and sound are the player's settings (see db).
 local db = require("src/database/db")
 
 local area_title = {}
 
 local subscription_name = "area-names-title"
-
--- How long each part of the effect takes, in seconds.
-local fade_in_seconds = 1.0
-local stay_seconds = 3.0
-local fade_out_seconds = 1.5
-
--- How far down the screen the title's top is, as a part of the screen's
--- height.
-local title_height_on_screen = 0.3
 
 -- What apostrophes in names are shown as. The fonts draw a plain ' low, like a
 -- comma, and have no curly one, so it's swapped for a grave accent.
@@ -73,6 +64,8 @@ area_title.colours = {
     { id = "parchment", label = "Parchment", rgb = 0xF0E6C8 },
     { id = "gold", label = "RuneScape gold", rgb = 0xE3BB5B },
     { id = "dark_gold", label = "Dark gold", rgb = 0xB8913E },
+    -- The colour picked in the settings window (db.get_custom_colour).
+    { id = "custom", label = "Custom" },
 }
 
 -- Game sounds, from id.Sound. A sound with seconds is stopped after that long,
@@ -177,33 +170,41 @@ end
 local title
 ---@type ui.Text?
 local subtitle
--- How far below the title the subtitle was put when it was made. Moving it
--- with SetPos afterwards doesn't show in game, so it's made anew to move it.
----@type integer?
-local subtitle_gap_made_at
--- The layer the title is drawn on.
----@type ui.Component?
-local root
 -- The area's shield above its name, like the lodestones', if it has one.
 ---@type ui.Sprite?
 local shield
 -- How big the shield is, in pixels.
 local shield_size = 96
+-- The layer the title is drawn on.
+---@type ui.Component?
+local root
+-- Where the title and subtitle were put when they were made: how far down the
+-- screen (as a part of its height) and how far below the title the subtitle
+-- is. Moving them with SetPos afterwards doesn't show in game, so they're made
+-- anew to move them.
+---@type number?
+local made_at_height
+---@type integer?
+local made_at_gap
 -- How long the title has been showing, in seconds, or nil when it isn't.
 ---@type number?
 local shown_for
+-- How long the showing title fades in, stays and fades out, in seconds, read
+-- from the settings when it starts.
+local fade_in_seconds, stay_seconds, fade_out_seconds = 1.0, 3.0, 1.5
 
 -- A line of text as wide as the screen, with its words in the middle.
 ---@param parent ui.Component
 ---@param font integer
 ---@param y integer
+---@param height number How far down the screen, as a part of its height
 ---@return ui.Text
-local function new_text(parent, font, y)
+local function new_text(parent, font, y, height)
     local text = ui.Text.new(parent)
     -- 0 wide plus 100% of the screen, 100 high.
     text:SetSize(0, 100, 1.0)
-    -- At the screen's left edge, y below the point title_height_on_screen down.
-    text:SetPos(0, y, 0, title_height_on_screen)
+    -- At the screen's left edge, y below the point `height` down.
+    text:SetPos(0, y, 0, height)
     text.font = font
     text.alignHorizontal = ui.AlignMode.CENTRE
     text.alignVertical = ui.AlignMode.CENTRE
@@ -218,7 +219,6 @@ end
 ---@param seconds number
 ---@return number?
 local function alpha_after(seconds)
-
     -- Gradually show the text more
     if seconds < fade_in_seconds then
         return seconds / fade_in_seconds
@@ -277,23 +277,59 @@ local function on_draw(event)
     end
 end
 
--- Gives the title and subtitle the font, size and colour from the settings.
+local function destroy_components()
+    if title then
+        title:Destroy()
+    end
+    if subtitle then
+        subtitle:Destroy()
+    end
+    if shield then
+        shield:Destroy()
+    end
+    title, subtitle, shield = nil, nil, nil
+end
+
+-- Makes the title, subtitle and shield, hidden.
+---@param height number How far down the screen the title's top is, as a part of its height
+---@param gap integer How far below the title the subtitle is, in pixels
+local function make_components(height, gap)
+    title = new_text(root, id.Font.CINZEL_72PT_BOLD, 0, height)
+    subtitle = new_text(root, id.Font.CINZEL_25PT_BOLD_MULTILINE, gap, height)
+    shield = ui.Sprite.new(root)
+    shield:SetSize(shield_size, shield_size)
+    -- Centred, with its bottom where the title's top is.
+    shield:SetPos(-shield_size // 2, -shield_size, 0.5, height)
+    shield.hidden = true
+    made_at_height, made_at_gap = height, gap
+end
+
+-- The colour's 0xRRGGBB.
+---@param colour { rgb?: integer }
+---@return integer
+local function rgb_of(colour)
+    -- The custom colour is saved as 0xRRGGBBAA; the alpha isn't used.
+    return colour.rgb or db.get_custom_colour() // 0x100
+end
+
+-- Gives the title and subtitle the font, size, colour and place on screen
+-- from the settings.
 local function apply_settings()
-    if not title or not subtitle or not root then
+    if not root then
         return
     end
     local font = find(area_title.fonts, db.get_font())
     local size = find(area_title.sizes, db.get_font_size())
     local colour = find(area_title.colours, db.get_colour())
-    if size.subtitle_gap ~= subtitle_gap_made_at then
-        subtitle:Destroy()
-        subtitle = new_text(root, font.subtitle[size.id], size.subtitle_gap)
-        subtitle_gap_made_at = size.subtitle_gap
+    local height = db.get_title_height() / 100
+    if height ~= made_at_height or size.subtitle_gap ~= made_at_gap then
+        destroy_components()
+        make_components(height, size.subtitle_gap)
     end
     title.font = font.title[size.id]
     subtitle.font = font.subtitle[size.id]
-    title.rgb = colour.rgb
-    subtitle.rgb = colour.rgb
+    title.rgb = rgb_of(colour)
+    subtitle.rgb = rgb_of(colour)
 end
 
 -- Plays the sound from the settings, even with sounds turned off, to hear it
@@ -319,14 +355,7 @@ function area_title.start()
     -- The bottom plugin layer is under the game's interfaces, so open
     -- interfaces cover the title, like they cover the game world.
     root = ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__PLUGIN_BUILD_LAYER_BOTTOM)
-    title = new_text(root, id.Font.CINZEL_72PT_BOLD, 0)
-    subtitle = new_text(root, id.Font.CINZEL_25PT_BOLD_MULTILINE, 80)
-    subtitle_gap_made_at = 80
-    shield = ui.Sprite.new(root)
-    shield:SetSize(shield_size, shield_size)
-    -- Centred, with its bottom where the title's top is.
-    shield:SetPos(-shield_size // 2, -shield_size, 0.5, title_height_on_screen)
-    shield.hidden = true
+    apply_settings()
     Event.Draw.Subscribe(subscription_name, on_draw)
 end
 
@@ -348,18 +377,18 @@ end
 ---@param subtitle_text string?
 ---@param sprite_name string? The area's shield, as its name in id.Sprite
 function area_title.show(name, subtitle_text, sprite_name)
-    if not title or not subtitle then
+    -- First, as it can make the title, subtitle and shield anew.
+    apply_settings()
+    if not title or not subtitle or not shield then
         return
     end
     local sprite_id = db.get_show_shield() and find_sprite(sprite_name)
-    if shield then
-        shield.hidden = not sprite_id
-        if sprite_id then
-            shield.spriteID = sprite_id
-            shield.alpha = 0
-        end
+    shield.hidden = not sprite_id
+    if sprite_id then
+        shield.spriteID = sprite_id
+        shield.alpha = 0
     end
-    apply_settings()
+    fade_in_seconds, stay_seconds, fade_out_seconds = db.get_title_timing()
     local font = find(area_title.fonts, db.get_font())
     local size = find(area_title.sizes, db.get_font_size())
     local spaces = string.rep(" ", font.title_spaces and font.title_spaces[size.id] or 1)
@@ -394,23 +423,12 @@ end
 
 function area_title.stop()
     Event.Draw.Unsubscribe(subscription_name)
-    if title then
-        title:Destroy()
-    end
-    if subtitle then
-        subtitle:Destroy()
-    end
-    if shield then
-        shield:Destroy()
-    end
+    destroy_components()
     if limited_sound then
         limited_sound:Stop()
         limited_sound = nil
     end
-    title = nil
-    subtitle = nil
-    subtitle_gap_made_at = nil
-    shield = nil
+    made_at_height, made_at_gap = nil, nil
     root = nil
     shown_for = nil
 end

@@ -13,15 +13,13 @@ A RuneScape 3 plugin that announces where you are, like the area titles in the S
 
 ## Settings
 
-On the plugin's page (its ribbon icon), on the **Settings** tab:
+The plugin's page (its ribbon icon) has the most used ones: **Font**, **Font size**, **Play a sound**, **Preview** (the title for where you are now, or an example when that's nowhere named), and **Open settings** for the rest. The settings window has three tabs:
 
-- **Font**, **Font size** and **Colour** of the title. Fonts only come in fixed sizes, so the size is greyed out for fonts that have just one.
-- **Show shields**: the lodestone shield above the name.
-- **Play a sound** and **Sound**: a sound as the title appears. Needs the game's sound effects turned on.
-- **Repeat titles after (minutes)**: how long before an area's title shows again when you walk back in. 0 shows it every time.
-- **Preview**: shows the title for where you are now, or an example when that's nowhere named.
+- **Text**: **Font**, **Font size** (greyed out for fonts that come in just one size), **Colour** with a **Custom colour** picker, **Show shields** (the lodestone shield above the name), **Height on screen**, and how long the title takes to **fade in**, **stays** and takes to **fade out**.
+- **Sound**: **Play a sound** and which **Sound**. Needs the game's sound effects turned on.
+- **Areas**: which kinds of area get titles (kingdoms, places, boss fights, heists), **Repeat titles after**: how long before an area's title shows again when you walk back in (0 shows it every time), and a checkbox for every kingdom, place, boss fight and heist. Untick one to stop its title; inside an unticked place, a bigger place around it shows instead. All of these are saved between sessions.
 
-Dev builds also have a **Map borders** tab, a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
+Dev builds also have a **Map borders** tab on the plugin's page, a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
 
 ## Contributing areas
 

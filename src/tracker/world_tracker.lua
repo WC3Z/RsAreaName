@@ -83,7 +83,29 @@ local function instance_now()
     if not World.IsRegion() then
         return nil
     end
-    return world_areas.instance_with_id(var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value)
+    local instance_id = var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value
+    local instance = world_areas.instance_with_id(instance_id)
+    if instance and (not db.get_show_kind(instance.heist and "heists" or "bosses")
+        or db.is_instance_hidden(instance_id)) then
+        return nil
+    end
+    return instance
+end
+
+-- Whether the player wants titles for this place. Places they don't are left
+-- out of the lookup, so a bigger place around one shows instead.
+---@param place WorldPlace
+---@return boolean
+local function place_counts(place)
+    return db.get_show_kind("places") and not db.is_area_hidden(place.name)
+end
+
+-- Whether the player wants titles for this kingdom. Unlike places, kingdoms
+-- they don't are still tracked, since places use their names as subtitles.
+---@param kingdom WorldKingdom
+---@return boolean
+local function kingdom_shown(kingdom)
+    return db.get_show_kind("kingdoms") and not db.is_area_hidden(kingdom.name)
 end
 
 -- Shows an area's title, unless the player walked in and it was shown less
@@ -125,8 +147,8 @@ local function on_tick()
     end
 
     local instance = instance_now()
-    local place = world_areas.place_at(x, z)
-    if (place == nil and current_place ~= nil
+    local place = world_areas.place_at(x, z, place_counts)
+    if (place == nil and current_place ~= nil and place_counts(current_place)
         and world_areas.is_near_place(current_place, x, z, leave_margin)) then
         place = current_place
     end
@@ -143,7 +165,8 @@ local function on_tick()
     elseif (instance == nil and place ~= nil and current_place ~= place) then
         -- The place's own subtitle, or the kingdom it's in.
         show(place, place.subtitle or (kingdom and kingdom.name))
-    elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom) then
+    elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom
+        and kingdom_shown(kingdom)) then
         show(kingdom)
     end
 

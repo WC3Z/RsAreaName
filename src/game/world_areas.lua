@@ -22,7 +22,8 @@ local world_areas = {}
 ---@class WorldInstance
 ---@field name      string
 ---@field subtitle? string
----@field sprite?   string A sprite shown above the name, as its name in id.Sprite
+---@field sprite?   string  A sprite shown above the name, as its name in id.Sprite
+---@field heist?    boolean A heist rather than a boss fight
 
 -- Instances by the value of BOSS_INSTANCE_CURRENT_BOSS while the player is in
 -- them. For bosses it's their BSLAY_ID (Boss Slayer, or Reaper task, id), and
@@ -91,8 +92,8 @@ world_areas.instances = {
     [56] = { name = "Ivar", subtitle = "King of Bones" },
     [57] = { name = "Silverquill", subtitle = "The Dreadhog" },
     -- Heists
-    [500] = { name = "Asuran Arsenal", subtitle = "Anachronia" },
-    [501] = { name = "Vault of Hereditas", subtitle = "Kharid-et Dig Site" },
+    [500] = { name = "Asuran Arsenal", subtitle = "Anachronia", heist = true },
+    [501] = { name = "Vault of Hereditas", subtitle = "Kharid-et Dig Site", heist = true }
 }
 
 -- Where places overlap, the smallest wins, so the Grand Exchange shows inside
@@ -814,6 +815,26 @@ world_areas.places = {
             { 3327, 2809 }
         }
     },
+    {
+        name = "Menaphos",
+        subtitle = "The Golden City",
+        sprite = "THAS_SHIELD_MENAPHOS",
+        points = {
+            { 3257, 2814 },
+            { 3213, 2816 },
+            { 3180, 2817 },
+            { 3166, 2830 },
+            { 3137, 2828 },
+            { 3125, 2819 },
+            { 3076, 2813 },
+            { 3064, 2686 },
+            { 3136, 2565 },
+            { 3224, 2551 },
+            { 3278, 2598 },
+            { 3274, 2660 },
+            { 3256, 2707 }
+        }
+    },
     { name = "Bedabin Camp", subtitle = "Bedabin Nomads", at = { 3170, 3030 }, radius = 25 },
     -- Morytania
     { name = "Canifis", sprite = "THAS_SHIELD_CANIFIS", at = { 3493, 3488 }, radius = 28 },
@@ -1478,8 +1499,17 @@ world_areas.places = {
         name = "Senntisten",
         subtitle = "Capital of the Zarosian Empire",
         points = {
-            { 1855, 1024 }, { 1857, 1152 }, { 2045, 1153 }, { 2046, 1225 }, { 2046, 1340 }, { 1855, 1342 },
-            { 1855, 1407 }, { 1601, 1405 }, { 1600, 1090 }, { 1663, 1089 }, { 1665, 1027 }
+            { 1855, 1024 },
+            { 1857, 1152 },
+            { 2045, 1153 },
+            { 2046, 1225 },
+            { 2046, 1340 },
+            { 1855, 1342 },
+            { 1855, 1407 },
+            { 1601, 1405 },
+            { 1600, 1090 },
+            { 1663, 1089 },
+            { 1665, 1027 }
         }
     },
     {
@@ -1577,11 +1607,390 @@ world_areas.places = {
         }
     },
     { name = "Otot", points = { { 4123, 899 }, { 4213, 897 }, { 4219, 940 }, { 4111, 942 } } },
+    {
+        name = "Grotworm Lair",
+        subtitle = "Rimmington",
+        points = {
+            { 1090, 6366 },
+            { 1099, 6351 },
+            { 1121, 6339 },
+            { 1178, 6342 },
+            { 1343, 6365 },
+            { 1343, 6493 },
+            { 1330, 6497 },
+            { 1209, 6524 },
+            { 1132, 6519 },
+            { 1104, 6467 }
+        }
+    },
+    {
+        name = "Ancient Cavern",
+        subtitle = "Baxtorian Lake",
+        points = {
+            { 1746, 5316 },
+            { 1782, 5318 },
+            { 1790, 5331 },
+            { 1791, 5334 },
+            { 1791, 5355 },
+            { 1767, 5375 },
+            { 1729, 5373 },
+            { 1732, 5319 }
+        }
+    },
+    {
+        name = "Braindeath Island",
+        subtitle = "Eastern Sea",
+        points = { { 2113, 5056 }, { 2174, 5057 }, { 2174, 5182 }, { 2113, 5182 } }
+    },
+    {
+        name = "Chaos Tunnels",
+        subtitle = "The Wilderness",
+        points = {
+            { 3153, 5435 },
+            { 3316, 5441 },
+            { 3332, 5451 },
+            { 3325, 5567 },
+            { 3298, 5573 },
+            { 3137, 5570 },
+            { 3138, 5444 },
+            { 3143, 5434 }
+        }
+    },
+    {
+        name = "Dwarven mines",
+        subtitle = "Asgarnia",
+        points = {
+            { 3027, 9729 },
+            { 3061, 9734 },
+            { 3070, 9772 },
+            { 3062, 9854 },
+            { 3028, 9853 },
+            { 2988, 9850 },
+            { 2960, 9815 },
+            { 2960, 9807 },
+            { 2964, 9802 },
+            { 2987, 9801 },
+            { 3001, 9792 },
+            { 3028, 9796 },
+            { 3029, 9761 },
+            { 3013, 9741 },
+            { 3015, 9731 }
+        }
+    },
+    {
+        name = "God Wars Dungeon",
+        subtitle = "Troll Country",
+        points = {
+            { 2930, 5237 },
+            { 2946, 5288 },
+            { 2942, 5356 },
+            { 2902, 5372 },
+            { 2866, 5379 },
+            { 2825, 5360 },
+            { 2811, 5303 },
+            { 2825, 5258 },
+            { 2888, 5245 },
+            { 2917, 5238 }
+        }
+    },
+    {
+        name = "Ancient Prison",
+        subtitle = "God Wars Dungeon",
+        points = {
+            { 2942, 5188 },
+            { 2940, 5222 },
+            { 2865, 5233 },
+            { 2845, 5230 },
+            { 2846, 5199 },
+            { 2880, 5185 },
+            { 2932, 5186 }
+        }
+    },
+    {
+        name = "Fremennik Slayer Dungeon",
+        subtitle = "Fremennik Province",
+        points = {
+            { 2705, 9960 },
+            { 2748, 9959 },
+            { 2815, 9996 },
+            { 2808, 10047 },
+            { 2704, 10044 },
+            { 2682, 10026 },
+            { 2688, 9976 }
+        }
+    },
+    {
+        name = "Kuradal's Dungeon",
+        subtitle = "Ancient Cavern",
+        points = {
+            { 1600, 5253 },
+            { 1614, 5248 },
+            { 1659, 5249 },
+            { 1662, 5254 },
+            { 1663, 5255 },
+            { 1663, 5260 },
+            { 1662, 5299 },
+            { 1660, 5318 },
+            { 1653, 5324 },
+            { 1642, 5324 },
+            { 1630, 5322 },
+            { 1603, 5310 },
+            { 1601, 5303 },
+            { 1600, 5296 }
+        }
+    },
     -- Worlds of their own
     -- Map square 6, 10
     { name = "Death's Office", points = { { 384, 640 }, { 447, 640 }, { 447, 703 }, { 384, 703 } } },
     -- Map squares 50, 158 to 51, 158
-    { name = "War's Retreat", points = { { 3200, 10112 }, { 3327, 10112 }, { 3327, 10175 }, { 3200, 10175 } } }
+    { name = "War's Retreat", points = { { 3200, 10112 }, { 3327, 10112 }, { 3327, 10175 }, { 3200, 10175 } } },
+    {
+        name = "Ascension Dungeon",
+        subtitle = "Feldip Hills",
+        points = {
+            { 1093, 575 },
+            { 1018, 572 },
+            { 993, 639 },
+            { 1041, 698 },
+            { 1095, 702 },
+            { 1203, 703 },
+            { 1220, 625 },
+            { 1206, 586 }
+        }
+    },
+    {
+        name = "Hall of Memories",
+        subtitle = "Memorial to Guthix",
+        points = {
+            { 2199, 9089 },
+            { 2218, 9090 },
+            { 2236, 9111 },
+            { 2238, 9116 },
+            { 2236, 9122 },
+            { 2212, 9149 },
+            { 2198, 9148 },
+            { 2176, 9120 },
+            { 2176, 9114 }
+        }
+    },
+    {
+        name = "Jadinko Lair",
+        subtitle = "Karamja",
+        points = {
+            { 3038, 9217 },
+            { 3063, 9230 },
+            { 3071, 9238 },
+            { 3068, 9255 },
+            { 3049, 9279 },
+            { 3017, 9277 },
+            { 3008, 9276 },
+            { 3008, 9258 },
+            { 3015, 9229 },
+            { 3022, 9219 }
+        }
+    },
+    {
+        name = "Brimhaven Agility Arena",
+        subtitle = "Brimhaven",
+        points = { { 2747, 9540 }, { 2745, 9613 }, { 2816, 9612 }, { 2816, 9538 }, { 2805, 9534 }, { 2753, 9533 } }
+    },
+    {
+        name = "Brimhaven Dungeon",
+        subtitle = "Karamja",
+        points = {
+            { 2728, 9576 },
+            { 2686, 9598 },
+            { 2634, 9599 },
+            { 2632, 9596 },
+            { 2632, 9559 },
+            { 2624, 9549 },
+            { 2624, 9519 },
+            { 2624, 9476 },
+            { 2635, 9472 },
+            { 2677, 9473 },
+            { 2692, 9474 },
+            { 2691, 9410 },
+            { 2751, 9411 },
+            { 2751, 9498 },
+            { 2748, 9511 }
+        }
+    },
+    {
+        name = "Karamja Volcano",
+        subtitle = "Karamja",
+        points = {
+            { 2830, 9664 },
+            { 2860, 9651 },
+            { 2870, 9634 },
+            { 2866, 9623 },
+            { 2850, 9618 },
+            { 2868, 9574 },
+            { 2867, 9559 },
+            { 2841, 9546 },
+            { 2825, 9553 },
+            { 2823, 9657 }
+        }
+    },
+    {
+        name = "Lava Flow Mine",
+        subtitle = "Keldagrim",
+        points = { { 2180, 5633 }, { 2181, 5695 }, { 2217, 5695 }, { 2218, 5632 }, { 2180, 5632 } }
+    },
+    {
+        name = "Living Rock Caverns",
+        subtitle = "Dwarven mines",
+        points = {
+            { 3674, 5074 },
+            { 3709, 5115 },
+            { 3702, 5157 },
+            { 3671, 5178 },
+            { 3626, 5164 },
+            { 3605, 5125 },
+            { 3593, 5083 },
+            { 3620, 5069 },
+            { 3666, 5068 }
+        }
+    },
+    {
+        name = "Mos Le'Harmless Caves",
+        subtitle = "Mos Le'Harmless",
+        points = {
+            { 3745, 9350 },
+            { 3836, 9408 },
+            { 3838, 9470 },
+            { 3723, 9469 },
+            { 3713, 9434 },
+            { 3714, 9346 },
+            { 3741, 9346 }
+        }
+    },
+    {
+        name = "Ourania Altar",
+        subtitle = "Kandarin",
+        points = { { 3327, 4800 }, { 3326, 4863 }, { 3264, 4863 }, { 3264, 4800 } }
+    },
+    {
+        name = "Paddlington",
+        subtitle = "Misthalin",
+        points = { { 2303, 1663 }, { 2303, 1600 }, { 2240, 1600 }, { 2240, 1663 } }
+    },
+    {
+        name = "Pollnivneach Slayer Dungeon",
+        subtitle = "Pollnivneach",
+        points = {
+            { 3324, 4288 },
+            { 3266, 4288 },
+            { 3264, 4291 },
+            { 3265, 4410 },
+            { 3270, 4415 },
+            { 3326, 4415 },
+            { 3327, 4412 },
+            { 3327, 4303 },
+            { 3327, 4295 }
+        }
+    },
+    {
+        name = "Stronghold of Security",
+        subtitle = "Barbarian Village",
+        points = {
+            { 1857, 5191 },
+            { 1862, 5184 },
+            { 2305, 5185 },
+            { 2367, 5186 },
+            { 2366, 5246 },
+            { 2175, 5308 },
+            { 2118, 5309 },
+            { 1858, 5246 }
+        }
+    },
+    {
+        name = "Taverley Dungeon",
+        subtitle = "Taverley",
+        points = {
+            { 2925, 9671 },
+            { 2936, 9682 },
+            { 2973, 9773 },
+            { 2971, 9799 },
+            { 2938, 9855 },
+            { 2872, 9855 },
+            { 2848, 9854 },
+            { 2812, 9837 },
+            { 2808, 9832 },
+            { 2808, 9826 },
+            { 2819, 9770 },
+            { 2823, 9761 },
+            { 2883, 9676 },
+            { 2900, 9667 }
+        }
+    },
+    {
+        name = "Waterbirth Island Dungeon",
+        subtitle = "Waterbirth Island",
+        points = { { 2446, 10170 }, { 2553, 10167 }, { 2551, 10116 }, { 2440, 10120 }, { 2433, 10154 } }
+    },
+    {
+        name = "Ice Queen's lair",
+        subtitle = "White Wolf Mountain",
+        points = {
+            { 2865, 9933 },
+            { 2873, 9932 },
+            { 2881, 9954 },
+            { 2871, 9967 },
+            { 2861, 9968 },
+            { 2851, 9958 },
+            { 2856, 9933 }
+        }
+    },
+    {
+        name = "Forinthry Dungeon",
+        subtitle = "The Wilderness",
+        points = {
+            { 3123, 10057 },
+            { 3134, 10088 },
+            { 3128, 10164 },
+            { 3120, 10174 },
+            { 3115, 10174 },
+            { 3039, 10173 },
+            { 3012, 10158 },
+            { 3009, 10141 },
+            { 3080, 10049 }
+        }
+    },
+    {
+        name = "Zolarea",
+        points = { { 4904, 5553 }, { 4972, 5563 }, { 4966, 5519 }, { 4949, 5449 }, { 4878, 5440 }, { 4851, 5490 } }
+    },
+    {
+        name = "Goblin Village",
+        points = {
+            { 2960, 3481 }, { 2945, 3482 }, { 2944, 3516 }, { 2956, 3521 }, { 2972, 3518 }, { 2975, 3511 },
+            { 2971, 3506 }, { 2967, 3498 }, { 2963, 3494 }
+        }
+    },
+    {
+        name = "Uzer",
+        points = {
+            { 3468, 3079 }, { 3469, 3108 }, { 3483, 3113 }, { 3500, 3097 }, { 3506, 3088 }, { 3505, 3077 },
+            { 3468, 3078 }
+        }
+    },
+    {
+        name = "Kalphite Hive",
+        subtitle = "Kharidian Desert",
+        points = {
+            { 3408, 9532 }, { 3444, 9533 }, { 3455, 9524 }, { 3455, 9521 }, { 3455, 9489 }, { 3440, 9472 },
+            { 3395, 9473 }, { 3393, 9478 }, { 3395, 9517 }
+        }
+    },
+    {
+        name = "Polypore Dungeon",
+        subtitle = "Misthalin",
+        points = {
+            { 4614, 5457 }, { 4615, 5500 }, { 4726, 5499 }, { 4732, 5490 }, { 4733, 5444 }, { 4712, 5440 },
+            { 4679, 5447 }, { 4669, 5415 }, { 4669, 5396 }, { 4651, 5376 }, { 4610, 5381 }
+        }
+    },
+    { name = "Puro-Puro", subtitle = "Home of the implings", points = { { 2557, 4284 }, { 2556, 4357 }, { 2627, 4354 }, { 2626, 4285 } } },
 }
 
 ---@type WorldKingdom[]
@@ -2065,81 +2474,6 @@ world_areas.kingdoms = {
         name = "Iron Enclave",
         points = { { 2294, 2633 }, { 2300, 2669 }, { 2286, 2691 }, { 2245, 2671 }, { 2243, 2654 }, { 2245, 2629 } }
     },
-    {
-        name = "Ancient cavern",
-        points = {
-            { 1746, 5316 },
-            { 1782, 5318 },
-            { 1790, 5331 },
-            { 1791, 5334 },
-            { 1791, 5355 },
-            { 1767, 5375 },
-            { 1729, 5373 },
-            { 1732, 5319 }
-        }
-    },
-    { name = "Braindeath Island", points = { { 2113, 5056 }, { 2174, 5057 }, { 2174, 5182 }, { 2113, 5182 } } },
-    {
-        name = "Chaos tunnels",
-        points = {
-            { 3153, 5435 },
-            { 3316, 5441 },
-            { 3332, 5451 },
-            { 3325, 5567 },
-            { 3298, 5573 },
-            { 3137, 5570 },
-            { 3138, 5444 },
-            { 3143, 5434 }
-        }
-    },
-    {
-        name = "Dwarven Mines",
-        points = {
-            { 3027, 9729 },
-            { 3061, 9734 },
-            { 3070, 9772 },
-            { 3062, 9854 },
-            { 3028, 9853 },
-            { 2988, 9850 },
-            { 2960, 9815 },
-            { 2960, 9807 },
-            { 2964, 9802 },
-            { 2987, 9801 },
-            { 3001, 9792 },
-            { 3028, 9796 },
-            { 3029, 9761 },
-            { 3013, 9741 },
-            { 3015, 9731 }
-        }
-    },
-    {
-        name = "God Wars Dungeon",
-        points = {
-            { 2930, 5237 },
-            { 2946, 5288 },
-            { 2942, 5356 },
-            { 2902, 5372 },
-            { 2866, 5379 },
-            { 2825, 5360 },
-            { 2811, 5303 },
-            { 2825, 5258 },
-            { 2888, 5245 },
-            { 2917, 5238 }
-        }
-    },
-    {
-        name = "Ancient Prison",
-        subtitle = "God Wars Dungeon",
-        points = {
-            { 2942, 5188 },
-            { 2940, 5222 },
-            { 2865, 5233 },
-            { 2845, 5230 },
-            { 2846, 5199 },
-            { 2880, 5185 },
-            { 2932, 5186 }
-        }
-    },
     { name = "Mazcab", points = { { 4097, 705 }, { 4534, 706 }, { 4509, 954 }, { 4452, 959 }, { 4097, 958 } } }
 }
 
@@ -2237,14 +2571,17 @@ local function size_of(place)
 end
 
 -- The place the tile is in. Where places overlap, the smallest wins. nil
--- outside every place.
----@param x integer
----@param z integer
+-- outside every place. Places `counts` says no to are left out, so a bigger
+-- place around them wins instead.
+---@param x       integer
+---@param z       integer
+---@param counts? fun(place: WorldPlace): boolean
 ---@return WorldPlace?
-function world_areas.place_at(x, z)
+function world_areas.place_at(x, z, counts)
     local smallest
     for _, place in ipairs(world_areas.places) do
-        if world_areas.distance_outside(place, x, z) <= 0 and (not smallest or size_of(place) < size_of(smallest)) then
+        if world_areas.distance_outside(place, x, z) <= 0 and (not smallest or size_of(place) < size_of(smallest))
+            and (not counts or counts(place)) then
             smallest = place
         end
     end
@@ -2255,29 +2592,40 @@ end
 ---@param place  WorldPlace
 ---@param x      integer
 ---@param z      integer
----@param margin number    In tiles
+---@param margin number     In tiles
 ---@return boolean
 function world_areas.is_near_place(place, x, z, margin)
     return world_areas.distance_outside(place, x, z) <= margin
 end
 
+-- Whether the tile is inside the kingdom's outline or rectangles.
+---@param kingdom WorldKingdom
+---@param x       integer
+---@param z       integer
+---@return boolean
+local function in_kingdom(kingdom, x, z)
+    if kingdom.points then
+        return world_areas.distance_outside(kingdom, x, z) <= 0
+    end
+    for _, bounds in ipairs(kingdom.bounds) do
+        if inside(x, z, bounds) then
+            return true
+        end
+    end
+    return false
+end
+
 -- The kingdom the tile is in: the first in the list whose outline or
--- rectangles it's in. nil outside every kingdom.
----@param x integer
----@param z integer
+-- rectangles it's in. nil outside every kingdom. Kingdoms `counts` says no to
+-- are left out.
+---@param x       integer
+---@param z       integer
+---@param counts? fun(kingdom: WorldKingdom): boolean
 ---@return WorldKingdom?
-function world_areas.kingdom_at(x, z)
+function world_areas.kingdom_at(x, z, counts)
     for _, kingdom in ipairs(world_areas.kingdoms) do
-        if kingdom.points then
-            if world_areas.distance_outside(kingdom, x, z) <= 0 then
-                return kingdom
-            end
-        else
-            for _, bounds in ipairs(kingdom.bounds) do
-                if inside(x, z, bounds) then
-                    return kingdom
-                end
-            end
+        if in_kingdom(kingdom, x, z) and (not counts or counts(kingdom)) then
+            return kingdom
         end
     end
     return nil

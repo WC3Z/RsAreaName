@@ -4,46 +4,9 @@ local world_areas = require("src/game/world_areas")
 local world_tracker = require("src/tracker/world_tracker")
 local area_borders = require("src/mapping/area_borders")
 local corner_marker = require("src/mapping/corner_marker")
+local area_checkboxes = require("src/interface/area_checkboxes")
 
 local borders_page = {}
-
--- A heading, "All" and "None" buttons, and a checkbox for each area, to pick
--- which areas have their borders drawn. The areas are listed alphabetically,
--- ignoring a leading "The", not in world_areas' order, so they're easy to find.
----@param page table
----@param heading string
----@param areas { name: string }[]
-local function add_area_checkboxes(page, heading, areas)
-    local names = {}
-    for _, area in ipairs(areas) do
-        table.insert(names, area.name)
-    end
-    -- "The Wilderness" goes under W, where you'd look for it.
-    local function sort_key(name)
-        return name:lower():gsub("^the ", "")
-    end
-    table.sort(names, function (a, b) return sort_key(a) < sort_key(b) end)
-    local items = {}
-    for _, name in ipairs(names) do
-        table.insert(items, { text = name, value = name, selected = area_borders.is_area_shown(name) })
-    end
-
-    page:AddText(heading)
-    local checkboxes
-    local function set_all(shown)
-        area_borders.set_areas_shown(names, shown)
-        for _, name in ipairs(names) do
-            checkboxes:SetSelected(name, shown, false)
-        end
-    end
-    page:AddSimpleButton("All " .. heading:lower(), function () set_all(true) end)
-    page:AddSimpleButton("No " .. heading:lower(), function () set_all(false) end)
-    checkboxes = page:AddCheckboxButton(items, {
-        onChange = function (_, _, name, selected)
-            area_borders.set_areas_shown({ name }, selected)
-        end
-    })
-end
 
 ---@param page table
 function borders_page.add(page)
@@ -82,8 +45,9 @@ function borders_page.add(page)
     page:AddSimpleButton("Undo corner", corner_marker.undo)
     page:AddSimpleButton("Clear corners", corner_marker.clear)
 
-    add_area_checkboxes(page, "Kingdoms", world_areas.kingdoms)
-    add_area_checkboxes(page, "Places", world_areas.places)
+    for _, list in ipairs({ { "Kingdoms", world_areas.kingdoms }, { "Places", world_areas.places } }) do
+        area_checkboxes.add(page, list[1], list[2], area_borders.is_area_shown, area_borders.set_areas_shown)
+    end
 end
 
 return borders_page
