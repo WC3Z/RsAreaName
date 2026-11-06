@@ -222,6 +222,7 @@ end
 function settings_window.open()
     settings_window.close()
     window = prettyui.Window.new(game_area(), {
+        categoryID = "auto",
         title = "Area Names settings",
         width = 320,
         height = 440,
