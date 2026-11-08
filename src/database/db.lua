@@ -18,6 +18,7 @@ local title_height_key = "title_height_percent"
 local teleport_delay_key = "teleport_delay_ticks"
 local stop_sound_with_title_key = "stop_sound_with_title"
 local death_jingle_on_key = "death_jingle_on"
+local death_screen_on_key = "death_screen_on"
 local settings_window_x_key = "settings_window_x"
 local settings_window_y_key = "settings_window_y"
 local hidden_area_key_prefix = "hidden_area."
@@ -284,6 +285,17 @@ end
 ---@param on boolean
 function Db.set_death_jingle_on(on)
     PersistentDB:SetBool(death_jingle_on_key, on)
+end
+
+-- Whether "YOU DIED" shows when the player dies. Off until turned on.
+---@return boolean
+function Db.get_death_screen_on()
+    return get_bool(death_screen_on_key, false)
+end
+
+---@param on boolean
+function Db.set_death_screen_on(on)
+    PersistentDB:SetBool(death_screen_on_key, on)
 end
 
 -- Where the settings window was last dragged to, or nil when it hasn't been

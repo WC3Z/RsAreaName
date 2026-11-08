@@ -4,6 +4,7 @@
 -- heists get titles).
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
+local death_screen = require("src/ui/death_screen")
 local world_areas = require("src/game/world_areas")
 local settings_controls = require("src/interface/settings_controls")
 local area_checkboxes = require("src/interface/area_checkboxes")
@@ -96,6 +97,12 @@ local function add_text_page(page)
         on_change = db.set_teleport_delay_ticks,
     })
     settings_controls.add_preview_button(page)
+
+    page:AddTitle("You died")
+    settings_controls.add_toggle(page, "Show YOU DIED when you die",
+        "Darkens the screen and shows YOU DIED in red when your lifepoints hit 0 and stay there, like in Dark Souls",
+        db.get_death_screen_on(), db.set_death_screen_on)
+    page:AddSimpleButton("Preview YOU DIED", death_screen.show)
 end
 
 ---@param page table

@@ -2,6 +2,7 @@
 -- under it, fading in, staying a while and fading out again. Its look, timing,
 -- height on screen and sound are the player's settings (see db).
 local db = require("src/database/db")
+local fade = require("src/ui/fade")
 
 local area_title = {}
 
@@ -184,29 +185,6 @@ local function new_text(parent, font, y, height)
     return text
 end
 
--- How see-through the title is after it's been showing this long: from 0
--- (invisible) up to 1 while fading in, 1 while it stays, and back down to 0
--- while fading out. nil once it's done.
----@param seconds number
----@return number?
-local function alpha_after(seconds)
-    -- Gradually show the text more
-    if seconds < fade_in_seconds then
-        return seconds / fade_in_seconds
-    end
-    seconds = seconds - fade_in_seconds
-    -- Keep the text visible
-    if seconds < stay_seconds then
-        return 1
-    end
-    seconds = seconds - stay_seconds
-    -- Gradually fade the text out
-    if seconds < fade_out_seconds then
-        return 1 - seconds / fade_out_seconds
-    end
-    return nil
-end
-
 -- Stops a sound. Stopping one that has already finished is an error in game
 -- (the docs say it does nothing), so that's caught.
 ---@param sound audio.SoundInstance
@@ -283,7 +261,7 @@ local function on_draw(event)
         return
     end
     shown_for = shown_for + event.timeDeltaSecs
-    local alpha = alpha_after(shown_for)
+    local alpha = fade.alpha_after(shown_for, fade_in_seconds, stay_seconds, fade_out_seconds)
     if not alpha then
         area_title.hide()
         return
