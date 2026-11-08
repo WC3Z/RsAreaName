@@ -225,6 +225,16 @@ function world_tracker.current_title()
     return nil
 end
 
+-- The boss fight the player is in, by name, or nil when they aren't in one
+-- (heists don't count).
+---@return string?
+function world_tracker.current_boss()
+    if current_instance and not current_instance.heist then
+        return current_instance.name
+    end
+    return nil
+end
+
 -- The player's world tile (in an instance, the one it was copied from), or
 -- nil when there's no player.
 ---@return integer? x

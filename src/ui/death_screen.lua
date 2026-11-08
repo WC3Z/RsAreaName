@@ -5,6 +5,8 @@
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
 local fade = require("src/ui/fade")
+local insults = require("src/game/insults")
+local world_tracker = require("src/tracker/world_tracker")
 
 local death_screen = {}
 
@@ -21,18 +23,6 @@ local text_colour = 0xA01414
 -- How far below the middle of the screen the insult is, in pixels, so it's
 -- under YOU DIED. Bigger for bigger font sizes.
 local insult_gaps = { small = 35, medium = 45, large = 55 }
-
-local insults = {
-    "Skill issue",
-    "Lmao",
-    "That the best you got?",
-    "Go back to killing goblins instead",
-    "Maybe you'd be better off a skiller",
-    "Sit."
-}
--- The insult shown last time, so the next one is a different one.
----@type integer?
-local last_insult
 
 ---@type ui.Rectangle?
 local screen_shade
@@ -73,21 +63,24 @@ local function set_alpha(alpha)
     insult.alpha = alpha
 end
 
--- A random insult, never the same as last time.
+-- What's known about the death now, for picking an insult.
+---@return DeathContext
+local function death_context()
+    local ping = World.GetPing()
+    return {
+        ping = ping >= 0 and ping or nil,
+        boss = world_tracker.current_boss(),
+    }
+end
+
+-- An insult for the death, if the player wants one, as it's drawn.
 ---@return string
-local function pick_insult()
-    local index
-    if last_insult then
-        -- One of the others: picks from one fewer and skips over the last one.
-        index = math.random(#insults - 1)
-        if index >= last_insult then
-            index = index + 1
-        end
-    else
-        index = math.random(#insults)
+local function insult_text()
+    if not db.get_death_insults_on() then
+        return ""
     end
-    last_insult = index
-    return area_title.subtitle_text(insults[index])
+    local text = insults.pick(death_context())
+    return text and area_title.subtitle_text(text) or ""
 end
 
 ---@param event DrawEventPayload
@@ -134,8 +127,8 @@ end
 
 -- Makes it anew with the settings, as moving text afterwards doesn't show in
 -- game and the insult's place depends on the font size.
----@param insult_text string
-local function make_components(insult_text)
+---@param insult_content string
+local function make_components(insult_content)
     local font = area_title.find_font(db.get_death_font())
     local size = area_title.find_size(db.get_death_font_size())
     screen_shade = new_shade(root, 1.0)
@@ -143,7 +136,7 @@ local function make_components(insult_text)
     text = new_text(0, (1 - band_height) / 2, 0, band_height, font.title[size.id])
     text.content = area_title.title_text("YOU DIED", font, size)
     insult = new_text(insult_gaps[size.id], 0.5, 40, 0, font.subtitle[size.id])
-    insult.content = insult_text
+    insult.content = insult_content
 end
 
 function death_screen.start()
@@ -158,7 +151,7 @@ function death_screen.show()
         return
     end
     death_screen.hide()
-    make_components(db.get_death_insults_on() and pick_insult() or "")
+    make_components(insult_text())
     fade_in_seconds, stay_seconds, fade_out_seconds = db.get_death_timing()
     shown_for = 0
     set_alpha(0)

@@ -14,6 +14,8 @@ local settings_window = {}
 local window
 local tabs
 
+local key_subscription_name = "area-names-settings-escape"
+
 -- Which area lists are open, by heading. Kept while the game is running, so
 -- they're still open when the window is opened again.
 ---@type table<string, boolean>
@@ -271,6 +273,15 @@ function settings_window.open()
         end,
     })
     refresh_tabs_on_resize()
+    -- Escape closes the window, like the game's own interfaces. The game
+    -- still gets the key too. Left subscribed when the window closes this way
+    -- (it does nothing without a window) rather than unsubscribing from
+    -- inside the key's own event.
+    Event.KeyDown.Subscribe(key_subscription_name, function (event)
+        if window and not event.isRepeat and event.gameKey == GameKey.ESCAPE then
+            window:Close()
+        end
+    end)
     -- prettyui tabs keep a fixed height, so they're made to fill the window,
     -- and each tab scrolls on its own.
     tabs = window:AddTabs({ "Text", "Sound", "Areas", "Death" }, {
@@ -289,6 +300,7 @@ function settings_window.open()
 end
 
 function settings_window.close()
+    Event.KeyDown.Unsubscribe(key_subscription_name)
     if window then
         save_bounds(window)
         window:Destroy()
