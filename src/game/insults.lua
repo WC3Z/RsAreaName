@@ -77,6 +77,7 @@ insults.all = {
 	{ text = "Three kings, zero chance", when = boss("Dagannoth Kings") },
 	{ text = "Long live the King", when = boss("Kalphite King") },
 	{ text = "Chaos wins again", when = boss("Zamorak") },
+	{ text = "Boss got nerfed and you're still dying.", when = boss("Raksha") },
 }
 
 -- The insult shown last time, so the next one is a different one when
