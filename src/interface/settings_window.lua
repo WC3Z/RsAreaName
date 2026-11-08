@@ -1,7 +1,7 @@
 -- A separate, movable window with all the settings, opened from the plugin's
--- page. Its tabs are Text (how titles look and how long they show), Sound, and
+-- page. Its tabs are Text (how titles look and how long they show), Sound,
 -- Areas (which kinds of area, and which kingdoms, places, boss fights and
--- heists get titles).
+-- heists get titles) and Death (the YOU DIED screen and the death jingle).
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
 local death_screen = require("src/ui/death_screen")
@@ -97,12 +97,6 @@ local function add_text_page(page)
         on_change = db.set_teleport_delay_ticks,
     })
     settings_controls.add_preview_button(page)
-
-    page:AddTitle("You died")
-    settings_controls.add_toggle(page, "Show YOU DIED when you die",
-        "Darkens the screen and shows YOU DIED in red when your lifepoints hit 0 and stay there, like in Dark Souls",
-        db.get_death_screen_on(), db.set_death_screen_on)
-    page:AddSimpleButton("Preview YOU DIED", death_screen.show)
 end
 
 ---@param page table
@@ -114,9 +108,6 @@ local function add_sound_page(page)
     settings_controls.add_toggle(page, "Stop the sound with the title",
         "Cuts the sound off when the title is gone. A playing sound can't be faded, so it's a hard stop. Off: sounds always play to the end",
         db.get_stop_sound_with_title(), db.set_stop_sound_with_title)
-    settings_controls.add_toggle(page, "Play the death jingle on death",
-        "Plays the death jingle when you respawn in Death's Office after dying, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
-        db.get_death_jingle_on(), db.set_death_jingle_on)
     page:AddSimpleButton("Play", function ()
         area_title.play_sound()
     end)
@@ -135,6 +126,18 @@ local function add_sound_page(page)
             end
         end
     })
+end
+
+-- What happens when the player dies: the YOU DIED screen and the death jingle.
+---@param page table
+local function add_death_page(page)
+    settings_controls.add_toggle(page, "Show YOU DIED when you die",
+        "Darkens the screen and shows YOU DIED in red when your lifepoints hit 0 and stay there, like in Dark Souls",
+        db.get_death_screen_on(), db.set_death_screen_on)
+    page:AddSimpleButton("Preview", death_screen.show)
+    settings_controls.add_toggle(page, "Play the death jingle on death",
+        "Plays the death jingle when you respawn in Death's Office after dying, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
+        db.get_death_jingle_on(), db.set_death_jingle_on)
 end
 
 -- The kinds of area that can be turned off as a whole, as on the Areas tab.
@@ -279,7 +282,7 @@ function settings_window.open()
     refresh_tabs_on_resize()
     -- prettyui tabs keep a fixed height, so they're made to fill the window,
     -- and each tab scrolls on its own.
-    tabs = window:AddTabs({ "Text", "Sound", "Areas" }, {
+    tabs = window:AddTabs({ "Text", "Sound", "Areas", "Death" }, {
         activeIndex = open_tab,
         y = 0,
         height = 0,
@@ -291,6 +294,7 @@ function settings_window.open()
     add_text_page(tabs:GetPage(1))
     add_sound_page(tabs:GetPage(2))
     add_areas_page(tabs:GetPage(3))
+    add_death_page(tabs:GetPage(4))
 end
 
 function settings_window.close()
