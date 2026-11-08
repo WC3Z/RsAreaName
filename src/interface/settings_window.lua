@@ -13,6 +13,13 @@ local settings_window = {}
 local window
 local tabs
 
+-- Which area lists are open, by heading. Kept while the game is running, so
+-- they're still open when the window is opened again.
+---@type table<string, boolean>
+local open_lists = {}
+-- Which tab is open, kept the same way.
+local open_tab = 1
+
 -- The main game screen, so the window can be moved anywhere over the game.
 local function game_area()
     return ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__GAME_AREA)
@@ -151,6 +158,8 @@ local function instance_lists()
     return bosses, heists
 end
 
+-- The kingdoms, places, boss fights and heists are lists that can be opened
+-- and closed, so the tab isn't one very long page.
 ---@param page table
 local function add_areas_page(page)
     page:AddTitle("Show titles for")
@@ -187,9 +196,6 @@ local function add_areas_page(page)
             db.set_area_hidden(name, not shown)
         end
     end
-    area_checkboxes.add(page, "Kingdoms", world_areas.kingdoms, is_shown, set_shown)
-    area_checkboxes.add(page, "Places", world_areas.places, is_shown, set_shown)
-
     local bosses, heists = instance_lists()
     local function is_instance_shown(key)
         return not db.is_instance_hidden(tonumber(key))
@@ -199,8 +205,19 @@ local function add_areas_page(page)
             db.set_instance_hidden(tonumber(key), not shown)
         end
     end
-    area_checkboxes.add(page, "Boss fights", bosses, is_instance_shown, set_instances_shown)
-    area_checkboxes.add(page, "Heists", heists, is_instance_shown, set_instances_shown)
+
+    local function add_list(heading, areas, is_checked, set_checked)
+        area_checkboxes.add(page, heading, areas, is_checked, set_checked, {
+            expanded = open_lists[heading] == true,
+            on_toggle = function (expanded)
+                open_lists[heading] = expanded
+            end,
+        })
+    end
+    add_list("Kingdoms", world_areas.kingdoms, is_shown, set_shown)
+    add_list("Places", world_areas.places, is_shown, set_shown)
+    add_list("Boss fights", bosses, is_instance_shown, set_instances_shown)
+    add_list("Heists", heists, is_instance_shown, set_instances_shown)
 end
 
 -- prettyui only re-measures the window's own scroll area when the window is
@@ -217,13 +234,24 @@ local function refresh_tabs_on_resize()
     end
 end
 
+-- Saves where the window is, so it opens there next time. Also done when it's
+-- closed, as prettyui versions before 1.3.0 don't call onPositionChange.
+---@param closing table The prettyui window
+local function save_position(closing)
+    db.set_settings_window_position(closing.root.x, closing.root.y)
+end
+
 -- Opens the window, or brings back a fresh one if it's already open, so it
--- shows settings changed on the plugin's page meanwhile.
+-- shows settings changed on the plugin's page meanwhile. It opens where it was
+-- last dragged to.
 function settings_window.open()
     settings_window.close()
+    local saved_x, saved_y = db.get_settings_window_position()
     window = prettyui.Window.new(game_area(), {
         categoryID = "auto",
         title = "Area Names settings",
+        x = saved_x,
+        y = saved_y,
         width = 320,
         height = 440,
         resizable = true,
@@ -232,15 +260,27 @@ function settings_window.open()
         -- The tabs scroll instead.
         scrollable = false,
         destroyOnClose = true,
-        onClose = function ()
+        onClose = function (closing)
+            save_position(closing)
             window = nil
             tabs = nil
+        end,
+        onPositionChange = function (_, x, y)
+            db.set_settings_window_position(x, y)
         end,
     })
     refresh_tabs_on_resize()
     -- prettyui tabs keep a fixed height, so they're made to fill the window,
     -- and each tab scrolls on its own.
-    tabs = window:AddTabs({ "Text", "Sound", "Areas" }, { y = 0, height = 0, heightAnchor = 1.0 })
+    tabs = window:AddTabs({ "Text", "Sound", "Areas" }, {
+        activeIndex = open_tab,
+        y = 0,
+        height = 0,
+        heightAnchor = 1.0,
+        onChange = function (_, index)
+            open_tab = index
+        end,
+    })
     add_text_page(tabs:GetPage(1))
     add_sound_page(tabs:GetPage(2))
     add_areas_page(tabs:GetPage(3))
@@ -248,6 +288,7 @@ end
 
 function settings_window.close()
     if window then
+        save_position(window)
         window:Destroy()
         window = nil
         tabs = nil

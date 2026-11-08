@@ -18,6 +18,8 @@ local title_height_key = "title_height_percent"
 local teleport_delay_key = "teleport_delay_ticks"
 local stop_sound_with_title_key = "stop_sound_with_title"
 local death_jingle_on_key = "death_jingle_on"
+local settings_window_x_key = "settings_window_x"
+local settings_window_y_key = "settings_window_y"
 local hidden_area_key_prefix = "hidden_area."
 local hidden_instance_key_prefix = "hidden_instance."
 
@@ -217,6 +219,10 @@ end
 ---@param name string
 ---@param hidden boolean
 function Db.set_area_hidden(name, hidden)
+    -- Skipped when nothing changes, as "All places" sets every place at once.
+    if Db.is_area_hidden(name) == hidden then
+        return
+    end
     hidden_areas[name] = hidden
     PersistentDB:SetBool(hidden_area_key_prefix .. name, hidden)
 end
@@ -237,6 +243,9 @@ end
 ---@param instance_id integer
 ---@param hidden boolean
 function Db.set_instance_hidden(instance_id, hidden)
+    if Db.is_instance_hidden(instance_id) == hidden then
+        return
+    end
     hidden_instances[instance_id] = hidden
     PersistentDB:SetBool(hidden_instance_key_prefix .. instance_id, hidden)
 end
@@ -275,6 +284,26 @@ end
 ---@param on boolean
 function Db.set_death_jingle_on(on)
     PersistentDB:SetBool(death_jingle_on_key, on)
+end
+
+-- Where the settings window was last dragged to, or nil when it hasn't been
+-- moved yet.
+---@return integer? x
+---@return integer? y
+function Db.get_settings_window_position()
+    local x = PersistentDB:GetInt(settings_window_x_key)
+    local y = PersistentDB:GetInt(settings_window_y_key)
+    if x == nil or y == nil then
+        return nil, nil
+    end
+    return x, y
+end
+
+---@param x number
+---@param y number
+function Db.set_settings_window_position(x, y)
+    PersistentDB:SetInt(settings_window_x_key, math.floor(x))
+    PersistentDB:SetInt(settings_window_y_key, math.floor(y))
 end
 
 return Db
