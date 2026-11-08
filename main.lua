@@ -1,7 +1,6 @@
 local area_title = require("src/ui/area_title")
 local death_screen = require("src/ui/death_screen")
 local death_detector = require("src/tracker/death_detector")
-local db = require("src/database/db")
 local content_view = require("src/interface/content_view")
 local world_tracker = require("src/tracker/world_tracker")
 local world_areas = require("src/game/world_areas")
@@ -12,11 +11,7 @@ local corner_marker = has_mapping_tools and require("src/mapping/corner_marker")
 
 area_title.start()
 death_screen.start()
-death_detector.start(function ()
-    if db.get_death_screen_on() then
-        death_screen.show()
-    end
-end)
+death_detector.start(death_screen.on_death)
 content_view.start()
 world_tracker.start()
 

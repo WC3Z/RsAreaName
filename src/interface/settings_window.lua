@@ -28,15 +28,9 @@ end
 
 local seconds_per_tick = 0.6
 
----@param seconds number
----@return string
-local function seconds_text(seconds)
-    return string.format("%.1f s", seconds)
-end
-
 ---@param page table
 local function add_text_page(page)
-    settings_controls.add_font_choices(page)
+    settings_controls.add_font_choices(page, settings_controls.title_font)
     settings_controls.add_choice(page, "Colour", area_title.colours, db.get_colour(), db.set_colour)
     page:AddText("Custom colour")
     page:AddColourPicker({
@@ -59,36 +53,14 @@ local function add_text_page(page)
         tooltip = "How far down the screen the title is",
         on_change = db.set_title_height,
     })
-    local fade_in, stay, fade_out = db.get_title_timing()
-    settings_controls.add_slider(page, {
-        label = function (seconds) return "Fade in: " .. seconds_text(seconds) end,
-        min = 0,
-        max = 3,
-        step = 0.5,
-        value = fade_in,
-        tooltip = "How long the title takes to appear",
-        on_change = db.set_fade_in,
+    settings_controls.add_fade_sliders(page, "the title", {
+        get = db.get_title_timing,
+        set_fade_in = db.set_fade_in,
+        set_stay = db.set_stay,
+        set_fade_out = db.set_fade_out,
     })
     settings_controls.add_slider(page, {
-        label = function (seconds) return "Stays: " .. seconds_text(seconds) end,
-        min = 0.5,
-        max = 10,
-        step = 0.5,
-        value = stay,
-        tooltip = "How long the title stays before fading out",
-        on_change = db.set_stay,
-    })
-    settings_controls.add_slider(page, {
-        label = function (seconds) return "Fade out: " .. seconds_text(seconds) end,
-        min = 0,
-        max = 3,
-        step = 0.5,
-        value = fade_out,
-        tooltip = "How long the title takes to disappear",
-        on_change = db.set_fade_out,
-    })
-    settings_controls.add_slider(page, {
-        label = function (ticks) return "Delay after teleport: " .. seconds_text(ticks * seconds_per_tick) end,
+        label = function (ticks) return "Delay after teleport: " .. settings_controls.seconds_text(ticks * seconds_per_tick) end,
         min = 0,
         max = 5,
         step = 1,
@@ -134,10 +106,25 @@ local function add_death_page(page)
     settings_controls.add_toggle(page, "Show YOU DIED when you die",
         "Darkens the screen and shows YOU DIED in red when your lifepoints hit 0 and stay there, like in Dark Souls",
         db.get_death_screen_on(), db.set_death_screen_on)
-    page:AddSimpleButton("Preview", death_screen.show)
+    settings_controls.add_toggle(page, "Insult me",
+        "Shows a random insult under YOU DIED",
+        db.get_death_insults_on(), db.set_death_insults_on)
     settings_controls.add_toggle(page, "Play the death jingle on death",
-        "Plays the death jingle when you respawn in Death's Office after dying, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
+        "Plays the death jingle when you die, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
         db.get_death_jingle_on(), db.set_death_jingle_on)
+    page:AddSimpleButton("Preview", function ()
+        death_screen.preview()
+    end)
+    settings_controls.add_font_choices(page, {
+        get_font = db.get_death_font, set_font = db.set_death_font,
+        get_size = db.get_death_font_size, set_size = db.set_death_font_size,
+    })
+    settings_controls.add_fade_sliders(page, "YOU DIED", {
+        get = db.get_death_timing,
+        set_fade_in = db.set_death_fade_in,
+        set_stay = db.set_death_stay,
+        set_fade_out = db.set_death_fade_out,
+    })
 end
 
 -- The kinds of area that can be turned off as a whole, as on the Areas tab.
@@ -183,6 +170,7 @@ local function add_areas_page(page)
         })
     end
     page:AddCheckboxButton(items, {
+        width = settings_controls.checkbox_width(items),
         onChange = function (_, _, kind, selected)
             db.set_show_kind(kind, selected)
         end
@@ -244,26 +232,29 @@ local function refresh_tabs_on_resize()
     end
 end
 
--- Saves where the window is, so it opens there next time. Also done when it's
--- closed, as prettyui versions before 1.3.0 don't call onPositionChange.
+-- Saves where the window is and how big, so it opens like that next time.
+-- prettyui has no callback for resizing, and versions before 1.3.0 don't
+-- call onPositionChange either, so this is done when the window closes.
 ---@param closing table The prettyui window
-local function save_position(closing)
+local function save_bounds(closing)
     db.set_settings_window_position(closing.root.x, closing.root.y)
+    db.set_settings_window_size(closing.root.width, closing.root.height)
 end
 
 -- Opens the window, or brings back a fresh one if it's already open, so it
 -- shows settings changed on the plugin's page meanwhile. It opens where it was
--- last dragged to.
+-- and at the size it had when it was last closed.
 function settings_window.open()
     settings_window.close()
     local saved_x, saved_y = db.get_settings_window_position()
+    local width, height = db.get_settings_window_size()
     window = prettyui.Window.new(game_area(), {
         categoryID = "auto",
         title = "Area Names settings",
         x = saved_x,
         y = saved_y,
-        width = 320,
-        height = 440,
+        width = width,
+        height = height,
         resizable = true,
         minWidth = 240,
         minHeight = 200,
@@ -271,7 +262,7 @@ function settings_window.open()
         scrollable = false,
         destroyOnClose = true,
         onClose = function (closing)
-            save_position(closing)
+            save_bounds(closing)
             window = nil
             tabs = nil
         end,
@@ -299,7 +290,7 @@ end
 
 function settings_window.close()
     if window then
-        save_position(window)
+        save_bounds(window)
         window:Destroy()
         window = nil
         tabs = nil

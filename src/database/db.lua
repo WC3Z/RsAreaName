@@ -19,8 +19,16 @@ local teleport_delay_key = "teleport_delay_ticks"
 local stop_sound_with_title_key = "stop_sound_with_title"
 local death_jingle_on_key = "death_jingle_on"
 local death_screen_on_key = "death_screen_on"
+local death_insults_on_key = "death_insults_on"
+local death_font_key = "death_font"
+local death_font_size_key = "death_font_size"
+local death_fade_in_key = "death_fade_in_seconds"
+local death_stay_key = "death_stay_seconds"
+local death_fade_out_key = "death_fade_out_seconds"
 local settings_window_x_key = "settings_window_x"
 local settings_window_y_key = "settings_window_y"
+local settings_window_width_key = "settings_window_width"
+local settings_window_height_key = "settings_window_height"
 local hidden_area_key_prefix = "hidden_area."
 local hidden_instance_key_prefix = "hidden_instance."
 
@@ -275,8 +283,7 @@ function Db.set_stop_sound_with_title(stop)
     PersistentDB:SetBool(stop_sound_with_title_key, stop)
 end
 
--- Whether respawning in Death's Office after dying plays the death jingle.
--- On until turned off.
+-- Whether dying plays the death jingle, with YOU DIED. On until turned off.
 ---@return boolean
 function Db.get_death_jingle_on()
     return get_bool(death_jingle_on_key, true)
@@ -298,6 +305,62 @@ function Db.set_death_screen_on(on)
     PersistentDB:SetBool(death_screen_on_key, on)
 end
 
+-- Whether YOU DIED has an insult under it. Off until turned on.
+---@return boolean
+function Db.get_death_insults_on()
+    return get_bool(death_insults_on_key, false)
+end
+
+---@param on boolean
+function Db.set_death_insults_on(on)
+    PersistentDB:SetBool(death_insults_on_key, on)
+end
+
+-- YOU DIED's own font and size, apart from the area titles', as ids in
+-- area_title.fonts and area_title.sizes.
+---@return string
+function Db.get_death_font()
+    return get_string(death_font_key, "cinzel")
+end
+
+---@param font string
+function Db.set_death_font(font)
+    PersistentDB:SetString(death_font_key, font)
+end
+
+---@return string
+function Db.get_death_font_size()
+    return get_string(death_font_size_key, "large")
+end
+
+---@param size string
+function Db.set_death_font_size(size)
+    PersistentDB:SetString(death_font_size_key, size)
+end
+
+-- How long YOU DIED fades in, stays and fades out, in seconds.
+---@return number fade_in
+---@return number stay
+---@return number fade_out
+function Db.get_death_timing()
+    return get_float(death_fade_in_key, 1.5), get_float(death_stay_key, 4.0), get_float(death_fade_out_key, 2.0)
+end
+
+---@param seconds number
+function Db.set_death_fade_in(seconds)
+    PersistentDB:SetFloat(death_fade_in_key, seconds)
+end
+
+---@param seconds number
+function Db.set_death_stay(seconds)
+    PersistentDB:SetFloat(death_stay_key, seconds)
+end
+
+---@param seconds number
+function Db.set_death_fade_out(seconds)
+    PersistentDB:SetFloat(death_fade_out_key, seconds)
+end
+
 -- Where the settings window was last dragged to, or nil when it hasn't been
 -- moved yet.
 ---@return integer? x
@@ -316,6 +379,21 @@ end
 function Db.set_settings_window_position(x, y)
     PersistentDB:SetInt(settings_window_x_key, math.floor(x))
     PersistentDB:SetInt(settings_window_y_key, math.floor(y))
+end
+
+-- How big the settings window was when it was last closed, or the default
+-- size before it's been closed.
+---@return integer width
+---@return integer height
+function Db.get_settings_window_size()
+    return PersistentDB:GetInt(settings_window_width_key) or 320, PersistentDB:GetInt(settings_window_height_key) or 440
+end
+
+---@param width number
+---@param height number
+function Db.set_settings_window_size(width, height)
+    PersistentDB:SetInt(settings_window_width_key, math.floor(width))
+    PersistentDB:SetInt(settings_window_height_key, math.floor(height))
 end
 
 return Db

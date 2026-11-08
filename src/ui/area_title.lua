@@ -127,6 +127,36 @@ function area_title.font_has_sizes(font_id)
     return font.title.small ~= font.title.large
 end
 
+-- The font with this id in area_title.fonts, or the first one if it isn't there.
+---@param font_id string
+function area_title.find_font(font_id)
+    return find(area_title.fonts, font_id)
+end
+
+-- The size with this id in area_title.sizes, or the first one if it isn't there.
+---@param size_id string
+function area_title.find_size(size_id)
+    return find(area_title.sizes, size_id)
+end
+
+-- A title as it's drawn in this font and size: apostrophes swapped (see
+-- `apostrophe`) and spaces widened where the font needs it.
+---@param text string
+---@param font table An entry in area_title.fonts
+---@param size table An entry in area_title.sizes
+---@return string
+function area_title.title_text(text, font, size)
+    local spaces = string.rep(" ", font.title_spaces and font.title_spaces[size.id] or 1)
+    return (text:gsub("'", apostrophe):gsub(" ", spaces))
+end
+
+-- A subtitle as it's drawn: apostrophes swapped (see `apostrophe`).
+---@param text string
+---@return string
+function area_title.subtitle_text(text)
+    return (text:gsub("'", apostrophe))
+end
+
 ---@type ui.Text?
 local title
 ---@type ui.Text?
@@ -416,9 +446,8 @@ start_title = function (name, subtitle_text, sprite_name, sound_id)
     fade_in_seconds, stay_seconds, fade_out_seconds = db.get_title_timing()
     local font = find(area_title.fonts, db.get_font())
     local size = find(area_title.sizes, db.get_font_size())
-    local spaces = string.rep(" ", font.title_spaces and font.title_spaces[size.id] or 1)
-    title.content = (name:gsub("'", apostrophe):gsub(" ", spaces))
-    subtitle.content = ((subtitle_text or ""):gsub("'", apostrophe))
+    title.content = area_title.title_text(name, font, size)
+    subtitle.content = area_title.subtitle_text(subtitle_text or "")
     title.alpha = 0
     subtitle.alpha = 0
     shown_alpha = 0

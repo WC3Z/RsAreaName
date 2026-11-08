@@ -5,20 +5,27 @@ local world_tracker = require("src/tracker/world_tracker")
 local area_borders = require("src/mapping/area_borders")
 local corner_marker = require("src/mapping/corner_marker")
 local area_checkboxes = require("src/interface/area_checkboxes")
+local settings_controls = require("src/interface/settings_controls")
 
 local borders_page = {}
 
+-- Which area lists are open, by heading, kept while the game is running.
+---@type table<string, boolean>
+local open_lists = {}
+
 ---@param page table
 function borders_page.add(page)
-    local borders_checkbox = page:AddCheckboxButton({
+    local items = {
         {
             text = "Show area borders",
             value = "showBorders",
             selected = area_borders.is_shown(),
             tooltip = "Draws the borders of the areas ticked below on the ground around you, and on Better World Map if it's set up for it, each in its own colour. Not saved"
         }
-    },
+    }
+    local borders_checkbox = page:AddCheckboxButton(items,
         {
+            width = settings_controls.checkbox_width(items),
             onChange = function (_, _, _, selected)
                 if selected then
                     area_borders.show()
@@ -46,7 +53,13 @@ function borders_page.add(page)
     page:AddSimpleButton("Clear corners", corner_marker.clear)
 
     for _, list in ipairs({ { "Kingdoms", world_areas.kingdoms }, { "Places", world_areas.places } }) do
-        area_checkboxes.add(page, list[1], list[2], area_borders.is_area_shown, area_borders.set_areas_shown)
+        local heading = list[1]
+        area_checkboxes.add(page, heading, list[2], area_borders.is_area_shown, area_borders.set_areas_shown, {
+            expanded = open_lists[heading] == true,
+            on_toggle = function (expanded)
+                open_lists[heading] = expanded
+            end,
+        })
     end
 end
 
