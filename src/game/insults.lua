@@ -23,7 +23,7 @@ local situational_chance = 0.1
 ---@param context DeathContext
 ---@return boolean
 local function low_ping(context)
-    return context.ping ~= nil and context.ping < low_ping_ms
+	return context.ping ~= nil and context.ping < low_ping_ms
 end
 
 -- A `when` for dying in any of these boss fights, named as in
@@ -31,52 +31,52 @@ end
 ---@param ... string
 ---@return fun(context: DeathContext): boolean
 local function boss(...)
-    local names = {}
-    for _, name in ipairs({ ... }) do
-        names[name] = true
-    end
-    return function (context)
-        return context.boss ~= nil and names[context.boss] == true
-    end
+	local names = {}
+	for _, name in ipairs({ ... }) do
+		names[name] = true
+	end
+	return function (context)
+		return context.boss ~= nil and names[context.boss] == true
+	end
 end
 
 ---@type Insult[]
 insults.all = {
-    { text = "Skill issue" },
-    { text = "Lmao" },
-    { text = "That the best you got?" },
-    { text = "Go back to killing goblins instead" },
-    { text = "Maybe you'd be better off a skiller" },
-    { text = "Sit." },
-    { text = "Just retire" },
-    -- Implying a vote kick
-    { text = "1/4" },
-    { text = "Nice hp" },
-    { text = "Get this guy off my Clawdia team" },
-    { text = "'I ate'" },
-    { text = "Unlucky" },
-    { text = "Even Bandos would feel sorry for you" },
-    { text = "I bet you also asphyx the stun pool" },
-    { text = "Really? YOU are the World Guardian? We're doomed." },
-    { text = "You have the survival instincts of a stormtrooper." },
-    { text = "What happened?" },
-    { text = "Server lag again?", when = low_ping },
-    -- OSRS meme - "I tick eat th ose" etc
-    { text = "You tick eat th ose" },
-    { text = "It make you upset?" },
-    { text = "Dsafespot there" },
+	{ text = "Skill issue" },
+	{ text = "Lmao" },
+	{ text = "That the best you got?" },
+	{ text = "Go back to killing goblins instead" },
+	{ text = "Maybe you'd be better off a skiller" },
+	{ text = "Sit." },
+	{ text = "Just retire" },
+	-- Implying a vote kick
+	{ text = "1/4" },
+	{ text = "Nice hp" },
+	{ text = "Get this guy off my Clawdia team" },
+	{ text = "'I ate'" },
+	{ text = "Unlucky" },
+	{ text = "Even Bandos would feel sorry for you" },
+	{ text = "I bet you also asphyx the stun pool" },
+	{ text = "Really? YOU are the World Guardian? We're doomed." },
+	{ text = "You have the survival instincts of a stormtrooper." },
+	{ text = "What happened?" },
+	{ text = "Server lag again?", when = low_ping },
+	-- OSRS meme - "I tick eat th ose" etc
+	{ text = "You tick eat th ose" },
+	{ text = "It make you upset?" },
+	{ text = "Dsafespot there" },
 
-    -- Bosses
-    { text = "Died to the Giant Mole. Let that sink in.", when = boss("Giant Mole") },
-    { text = "Forgot your anti-dragon shield?", when = boss("King Black Dragon") },
-    { text = "Forgot your antifire?", when = boss("Queen Black Dragon") },
-    { text = "It took your weapon and your dignity", when = boss("Chaos Elemental") },
-    { text = "Wrong path?", when = boss("Araxxi") },
-    { text = "Rocks fall, you die", when = boss("Vorago") },
-    { text = "Lost the omni roulette again?", when = boss("Vorago") },
-    { text = "Three kings, zero chance", when = boss("Dagannoth Kings") },
-    { text = "Long live the King", when = boss("Kalphite King") },
-    { text = "Chaos wins again", when = boss("Zamorak") },
+	-- Bosses
+	{ text = "Died to the Giant Mole. Let that sink in.", when = boss("Giant Mole") },
+	{ text = "Forgot your anti-dragon shield?", when = boss("King Black Dragon") },
+	{ text = "Forgot your antifire?", when = boss("Queen Black Dragon") },
+	{ text = "It took your weapon and your dignity", when = boss("Chaos Elemental") },
+	{ text = "Wrong path?", when = boss("Araxxi") },
+	{ text = "Rocks fall, you die", when = boss("Vorago") },
+	{ text = "Lost the omni roulette again?", when = boss("Vorago") },
+	{ text = "Three kings, zero chance", when = boss("Dagannoth Kings") },
+	{ text = "Long live the King", when = boss("Kalphite King") },
+	{ text = "Chaos wins again", when = boss("Zamorak") },
 }
 
 -- The insult shown last time, so the next one is a different one when
@@ -90,21 +90,22 @@ local last_text
 ---@param situational boolean Only the ones with a `when`, or only the ones without
 ---@return string[]
 local function fitting(context, situational)
-    local texts = {}
-    for _, insult in ipairs(insults.all) do
-        if (insult.when ~= nil) == situational and (not insult.when or insult.when(context)) then
-            table.insert(texts, insult.text)
-        end
-    end
-    if #texts > 1 then
-        for index, text in ipairs(texts) do
-            if text == last_text then
-                table.remove(texts, index)
-                break
-            end
-        end
-    end
-    return texts
+	local texts = {}
+	for _, insult in ipairs(insults.all) do
+		if (insult.when ~= nil) == situational and (not insult.when or insult.when(context)) then
+			table.insert(texts, insult.text)
+		end
+	end
+	if #texts > 1 then
+		for index, text in ipairs(texts) do
+		    -- Remove the last shown text to prevent a duplicate entry
+			if text == last_text then
+				table.remove(texts, index)
+				break
+			end
+		end
+	end
+	return texts
 end
 
 -- A random insult that fits the death, or nil when none does. One that fits
@@ -112,17 +113,17 @@ end
 ---@param context DeathContext
 ---@return string?
 function insults.pick(context)
-    local situational = fitting(context, true)
-    local always = fitting(context, false)
-    local texts = always
-    if #situational > 0 and (#always == 0 or math.random() < situational_chance) then
-        texts = situational
-    end
-    if #texts == 0 then
-        return nil
-    end
-    last_text = texts[math.random(#texts)]
-    return last_text
+	local situational = fitting(context, true)
+	local always = fitting(context, false)
+	local texts = always
+	if #situational > 0 and (#always == 0 or math.random() < situational_chance) then
+		texts = situational
+	end
+	if #texts == 0 then
+		return nil
+	end
+	last_text = texts[math.random(#texts)]
+	return last_text
 end
 
 return insults
