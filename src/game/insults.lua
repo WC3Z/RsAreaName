@@ -18,7 +18,7 @@ local low_ping_ms = 30
 -- How often an insult that fits this death in particular (one with a
 -- `when`, like a boss's) is picked over the ones that always fit, when there
 -- is one. Otherwise they'd hardly ever show among the many that always fit.
-local situational_chance = 0.5
+local situational_chance = 0.1
 
 ---@param context DeathContext
 ---@return boolean
@@ -59,6 +59,7 @@ insults.all = {
     { text = "I bet you also asphyx the stun pool" },
     { text = "Really? YOU are the World Guardian? We're doomed." },
     { text = "You have the survival instincts of a stormtrooper." },
+    { text = "What happened?" },
     { text = "Server lag again?", when = low_ping },
     -- OSRS meme - "I tick eat th ose" etc
     { text = "You tick eat th ose" },
