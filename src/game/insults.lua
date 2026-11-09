@@ -18,7 +18,7 @@ local low_ping_ms = 30
 -- How often an insult that fits this death in particular (one with a
 -- `when`, like a boss's) is picked over the ones that always fit, when there
 -- is one. Otherwise they'd hardly ever show among the many that always fit.
-local situational_chance = 0.1
+local situational_chance = 1.0
 
 ---@param context DeathContext
 ---@return boolean
@@ -49,8 +49,6 @@ insults.all = {
 	{ text = "Maybe you'd be better off a skiller" },
 	{ text = "Sit." },
 	{ text = "Just retire" },
-	-- Implying a vote kick - TODO : add as AOD message
-	{ text = "1/4" },
 	{ text = "Nice hp" },
 	{ text = "Get this guy off my Clawdia team" },
 	{ text = "'I ate'" },
@@ -60,17 +58,14 @@ insults.all = {
 	{ text = "Really? YOU are the World Guardian? We're doomed." },
 	{ text = "You have the survival instincts of a stormtrooper." },
 	{ text = "What happened?" },
-	{ text = "You must be deaths favourite client" },
+	{ text = "You must be Deaths favourite client" },
 	{ text = "Server lag again?", when = low_ping },
-	-- OSRS meme - "I tick eat th ose" etc
-	{ text = "You tick eat th ose" },
-	{ text = "It make you upset?" },
-	{ text = "Dsafespot there" },
 
 	-- Bosses
 	{ text = "Died to the Giant Mole. Let that sink in.", when = boss("Giant Mole") },
 	{ text = "Forgot your anti-dragon shield?", when = boss("King Black Dragon") },
 	{ text = "Forgot your antifire?", when = boss("Queen Black Dragon") },
+	{ text = "QBD isn't the only thing that's rotten", when = boss("Queen Black Dragon") },
 	{ text = "It took your weapon and your dignity", when = boss("Chaos Elemental") },
 	{ text = "Wrong path?", when = boss("Araxxi") },
 	{ text = "Rocks fall, you die", when = boss("Vorago") },
@@ -78,9 +73,23 @@ insults.all = {
 	{ text = "Three kings, zero chance", when = boss("Dagannoth Kings") },
 	{ text = "Long live the King", when = boss("Kalphite King") },
 	{ text = "Chaos wins again", when = boss("Zamorak") },
-	-- TODO - verify boss names
+	{ text = "Cat got your tongue?", when = boss("Amascut") },
+	-- Implying a vote kick
+	{ text = "1/4", when = boss("Nex: Angel of Death") },
 	{ text = "Boss got nerfed and you're still dying.", when = boss("Raksha") },
 	{ text = "Even the Corporeal Beast couldn't stomach your presence", when = boss("Corporeal Beast") },
+	{ text = "Dug your own grave", when = boss("The Barrows Brothers") },
+	{ text = "Grounded.", when = boss("Kree'arra") },
+	{ text = "Enrage too high or skill too low?", when = boss("Telos") },
+	{ text = "Time's up", when = boss("Kerapac") },
+	{ text = "Devourer Eternal. You, not so much.", when = boss("Nakatra") },
+	{ text = "Now you're just bones too", when = boss("Ivar") },
+	{ text = "Mauled by a tree hugger", when = boss("Helwyr") },
+	{ text = "Extinct, just like your skill", when = boss("Rex Matriarchs") },
+	{ text = "Two of them, none of you", when = boss("Zemouregal & Vorkath") },
+	{ text = "Mother knows best", when = boss("Vermyx") },
+	{ text = "Wandered too far", when = boss("Kezalam") },
+	{ text = "Dreadhog? More like dead hog. Oh wait, that's you.", when = boss("Silverquill") },
 }
 
 -- The insult shown last time, so the next one is a different one when

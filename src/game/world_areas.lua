@@ -24,13 +24,18 @@ local world_areas = {}
 ---@field subtitle? string
 ---@field sprite?   string  A sprite shown above the name, as its name in id.Sprite
 ---@field heist?    boolean A heist rather than a boss fight
+---@field bar_names? string[] Other names the boss health bar may show, like the bosses' own names in a fight against two
 
 -- Instances by the value of BOSS_INSTANCE_CURRENT_BOSS while the player is in
 -- them. For bosses it's their BSLAY_ID (Boss Slayer, or Reaper task, id), and
 -- these names are the game's BSLAY_NAMEs, split into name and subtitle, or
 -- with where the boss is (from the wiki) as the subtitle. Some bosses only set
 -- it once the fight starts, like Solak and Raksha. Heists use it too, with ids
--- found by visiting them.
+-- found by visiting them. Some bosses never set it, like Silverquill, or
+-- aren't in an instance, like the Chaos Elemental; those are known by the
+-- name on their health bar instead, once the fight starts. The bar can show
+-- the name, the name and subtitle ("Silverquill the Dreadhog"), or one of
+-- the bar_names.
 ---@type table<integer, WorldInstance>
 world_areas.instances = {
     [1] = { name = "Araxxi", subtitle = "Araxyte Hive" },
@@ -39,7 +44,8 @@ world_areas.instances = {
     [4] = { name = "Chaos Elemental", subtitle = "The Wilderness" },
     [5] = { name = "Commander Zilyana", subtitle = "God Wars Dungeon" },
     [6] = { name = "Corporeal Beast", subtitle = "The Wilderness" },
-    [7] = { name = "Dagannoth Kings", subtitle = "Waterbirth Island" },
+    [7] = { name = "Dagannoth Kings", subtitle = "Waterbirth Island",
+        bar_names = { "Dagannoth Rex", "Dagannoth Prime", "Dagannoth Supreme" } },
     [8] = { name = "General Graardor", subtitle = "God Wars Dungeon" },
     [9] = { name = "Giant Mole", subtitle = "Falador" },
     [10] = { name = "Har-Aken", subtitle = "Fight Kiln" },
@@ -56,11 +62,11 @@ world_areas.instances = {
     [21] = { name = "Beastmaster Durzag", subtitle = "Liberation of Mazcab" },
     [22] = { name = "Yakamaru", subtitle = "Liberation of Mazcab" },
     [23] = { name = "The Twin Furies", subtitle = "Heart of Gielinor" },
-    [24] = { name = "Vindicta & Gorvek", subtitle = "Heart of Gielinor" },
+    [24] = { name = "Vindicta & Gorvek", subtitle = "Heart of Gielinor", bar_names = { "Vindicta", "Gorvek" } },
     [25] = { name = "Gregorovic", subtitle = "Heart of Gielinor" },
     [26] = { name = "Helwyr", subtitle = "Heart of Gielinor" },
     [27] = { name = "Telos", subtitle = "Heart of Gielinor" },
-    [28] = { name = "Nex", subtitle = "Angel of Death" },
+    [28] = { name = "Nex: Angel of Death", subtitle = "Ancient Prison" },
     [29] = { name = "The Magister", subtitle = "Sophanem Slayer Dungeon" },
     [30] = { name = "Solak", subtitle = "Guardian of the Grove" },
     [31] = { name = "The Sanctum Guardian", subtitle = "Temple of Aminishi" },
@@ -78,11 +84,11 @@ world_areas.instances = {
     [43] = { name = "Arch-Glacor", subtitle = "Glacor Front" },
     [44] = { name = "Croesus", subtitle = "Croesus Front" },
     -- Named after the area, since 17 waves come before Zuk himself.
-    [45] = { name = "TzekHaar Front", subtitle = "TzKal-Zuk" },
+    [45] = { name = "TzekHaar Front", subtitle = "TzKal-Zuk", bar_names = { "TzKal-Zuk" } },
     [46] = { name = "Zamorak", subtitle = "Lord of Chaos" },
     [47] = { name = "Hermod", subtitle = "The Spirit of War" },
     [48] = { name = "Rasial", subtitle = "The First Necromancer" },
-    [49] = { name = "Zemouregal & Vorkath", subtitle = "Fort Forinthry" },
+    [49] = { name = "Zemouregal & Vorkath", subtitle = "Fort Forinthry", bar_names = { "Zemouregal", "Vorkath" } },
     [50] = { name = "Vermyx", subtitle = "Brood Mother" },
     [51] = { name = "Kezalam", subtitle = "The Wanderer" },
     [52] = { name = "Nakatra", subtitle = "Devourer Eternal" },
@@ -91,6 +97,7 @@ world_areas.instances = {
     [55] = { name = "Flesh-hatcher Mhekarnahz", subtitle = "Daemonheim" },
     [56] = { name = "Ivar", subtitle = "King of Bones" },
     [57] = { name = "Silverquill", subtitle = "The Dreadhog" },
+    [58] = { name = "The Ghrazi Blood Knights", subtitle = "Crimson Throne" },
     -- Heists
     [500] = { name = "Asuran Arsenal", subtitle = "Anachronia", heist = true },
     [501] = { name = "Vault of Hereditas", subtitle = "Kharid-et Dig Site", heist = true }
@@ -2640,6 +2647,46 @@ end
 ---@return WorldInstance?
 function world_areas.instance_with_id(instance_id)
     return instance_id and world_areas.instances[instance_id]
+end
+
+-- A bar name as it's looked up: lowercase, without a leading "the", so "Gate
+-- of Elidinis" finds The Gate of Elidinis.
+---@param bar_name string
+---@return string
+local function bar_name_key(bar_name)
+    return (string.lower(bar_name):gsub("^the ", ""))
+end
+
+-- Instance ids by the names their boss's health bar may show. Where two
+-- share one, like the two Nex fights, the lowest id wins.
+---@type table<string, integer>
+local instance_ids_by_bar_name = {}
+for instance_id, instance in pairs(world_areas.instances) do
+    local bar_names = { instance.name }
+    if instance.subtitle then
+        table.insert(bar_names, instance.name .. " " .. instance.subtitle)
+        table.insert(bar_names, instance.name .. ", " .. instance.subtitle)
+    end
+    for _, bar_name in ipairs(instance.bar_names or {}) do
+        table.insert(bar_names, bar_name)
+    end
+    for _, bar_name in ipairs(bar_names) do
+        local key = bar_name_key(bar_name)
+        local other_id = instance_ids_by_bar_name[key]
+        if other_id == nil or instance_id < other_id then
+            instance_ids_by_bar_name[key] = instance_id
+        end
+    end
+end
+
+-- The id of the instance whose boss health bar has this name, if it's known.
+---@param bar_name string?
+---@return integer?
+function world_areas.instance_id_with_bar_name(bar_name)
+    if bar_name == nil or bar_name == "" then
+        return nil
+    end
+    return instance_ids_by_bar_name[bar_name_key(bar_name)]
 end
 
 return world_areas
