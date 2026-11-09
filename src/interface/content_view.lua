@@ -15,7 +15,7 @@ local view
 
 ---@param page table
 local function add_settings_page(page)
-    settings_controls.add_font_choices(page)
+    settings_controls.add_font_choices(page, settings_controls.title_font)
     settings_controls.add_sound_toggle(page)
     settings_controls.add_preview_button(page)
     page:AddSimpleButton("Open settings", function ()

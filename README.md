@@ -40,7 +40,7 @@ There are three kinds:
   { name = "Karamja", sprite = "THAS_SHIELD_KARAMJA", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
   ```
 
-- **Instances** are named by their **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places and kingdoms. Some bosses only set it once the fight starts.
+- **Instances** are named by their **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places and kingdoms. Some bosses only set it once the fight starts, and some never do, like Silverquill, or aren't in an instance, like the Chaos Elemental: those are known by the name on the boss health bar once the fight starts (the instance's `name`, its name and subtitle like "Silverquill the Dreadhog", or one of its `bar_names`, ignoring case and a leading "The"), until you leave the instance (or, outside instances, walk 32 tiles away).
 
   ```lua
   [30] = { name = "Solak", subtitle = "Guardian of the Grove" },

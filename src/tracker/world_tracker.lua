@@ -25,6 +25,9 @@ local ticks_per_minute = 100
 local leave_margin = 5
 -- Instances are copied from the game world in blocks this many tiles wide.
 local copied_block_size = 8
+-- How many tiles away from where a boss's health bar was last seen the player
+-- has to go to have left its fight, for bosses outside instances.
+local leave_fight_distance = 32
 
 ---@type WorldInstance?
 local current_instance = nil
@@ -32,6 +35,15 @@ local current_instance = nil
 local current_place = nil
 ---@type WorldKingdom?
 local current_kingdom = nil
+-- The boss last known by its health bar's name, and the player's tile when
+-- the bar was last seen. It stays until the player leaves, as the bar goes
+-- away when the fight ends, and when the player dies.
+---@type integer?
+local bar_instance_id = nil
+---@type integer?
+local bar_x = nil
+---@type integer?
+local bar_z = nil
 
 -- Game ticks left before titles show, after logging in or a loading screen.
 local ticks_until_titles = login_delay_ticks
@@ -73,14 +85,38 @@ local function world_tile(player)
         source.z - source.z % copied_block_size + tile.z % copied_block_size
 end
 
--- The known instance the player is in, if any. BOSS_INSTANCE_CURRENT_BOSS
--- keeps its value after leaving, so it's only used inside an instance.
----@return WorldInstance?
-local function instance_now()
-    if not World.IsRegion() then
-        return nil
+-- The boss known by its health bar's name, if the player is still at its
+-- fight. Leaving an instance rebuilds the world, which forgets it; outside
+-- instances, like at the Chaos Elemental, walking away does.
+---@param x integer
+---@param z integer
+---@return integer?
+local function bar_instance_id_now(x, z)
+    local bar_id = world_areas.instance_id_with_bar_name(var.VarClient.ACTIVITY_PROGRESS_BAR_ACTIVE_NAME.value)
+    if bar_id then
+        bar_instance_id, bar_x, bar_z = bar_id, x, z
+    elseif bar_instance_id and not World.IsRegion()
+        and (x - bar_x) ^ 2 + (z - bar_z) ^ 2 > leave_fight_distance ^ 2 then
+        bar_instance_id = nil
     end
-    local instance_id = var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value
+    return bar_instance_id
+end
+
+-- The known instance or boss fight the player is in, if any: by
+-- BOSS_INSTANCE_CURRENT_BOSS, or else by the boss's health bar, for bosses
+-- that don't set it or aren't in an instance. The var keeps its value after
+-- leaving, so it's only used inside an instance.
+---@param x integer
+---@param z integer
+---@return WorldInstance?
+local function instance_now(x, z)
+    local instance_id = World.IsRegion() and var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value or nil
+    -- Checked every tick, even when the var is known, so the bar's boss is
+    -- kept up to date for when the var goes back to 0.
+    local bar_id = bar_instance_id_now(x, z)
+    if world_areas.instance_with_id(instance_id) == nil then
+        instance_id = bar_id
+    end
     local instance = world_areas.instance_with_id(instance_id)
     if instance and (not db.get_show_kind(instance.heist and "heists" or "bosses")
         or db.is_instance_hidden(instance_id)) then
@@ -105,38 +141,19 @@ local function kingdom_shown(kingdom)
     return db.get_show_kind("kingdoms") and not db.is_area_hidden(kingdom.name)
 end
 
--- The place's own sound for where the player arrived, if they teleported to
--- its spot (see WorldArrivalSound), or nil for the one in the settings.
----@param area WorldInstance|WorldPlace|WorldKingdom
----@param x    integer
----@param z    integer
----@return string?
-local function arrival_sound(area, x, z)
-    local sound = area.arrival_sound
-    -- Death's Office's death jingle is the only arrival sound, so it's what
-    -- the setting is named after.
-    if not sound or not arrived_by_teleport or not db.get_death_jingle_on() then
-        return nil
-    end
-    local near = (x - sound.at[1]) ^ 2 + (z - sound.at[2]) ^ 2 <= sound.radius ^ 2
-    return near and sound.sound or nil
-end
-
 -- Shows an area's title, unless the player walked in and it was shown less
 -- than the "Repeat titles after" setting ago, like when stepping out of a
 -- place and straight back in. Arriving by teleport always shows it.
 ---@param area WorldInstance|WorldPlace|WorldKingdom
 ---@param subtitle string?
----@param x        integer The player's world tile
----@param z        integer
-local function show(area, subtitle, x, z)
+local function show(area, subtitle)
     local last_shown = shown_at[area]
     local repeat_ticks = db.get_repeat_minutes() * ticks_per_minute
     if not arrived_by_teleport and last_shown and tick - last_shown < repeat_ticks then
         return
     end
     shown_at[area] = tick
-    area_title.show(area.name, subtitle, area.sprite, arrival_sound(area, x, z))
+    area_title.show(area.name, subtitle, area.sprite)
 end
 
 -- Known instances come first, then places, then kingdoms. Leaving a place on
@@ -162,7 +179,7 @@ local function on_tick()
         return
     end
 
-    local instance = instance_now()
+    local instance = instance_now(x, z)
     local place = world_areas.place_at(x, z, place_counts)
     if (place == nil and current_place ~= nil and place_counts(current_place)
         and world_areas.is_near_place(current_place, x, z, leave_margin)) then
@@ -177,13 +194,13 @@ local function on_tick()
     end
 
     if (instance ~= nil and current_instance ~= instance) then
-        show(instance, instance.subtitle, x, z)
+        show(instance, instance.subtitle)
     elseif (instance == nil and place ~= nil and current_place ~= place) then
         -- The place's own subtitle, or the kingdom it's in.
-        show(place, place.subtitle or (kingdom and kingdom.name), x, z)
+        show(place, place.subtitle or (kingdom and kingdom.name))
     elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom
         and kingdom_shown(kingdom)) then
-        show(kingdom, nil, x, z)
+        show(kingdom, nil)
     end
 
     current_instance = instance
@@ -210,6 +227,7 @@ local function on_game_state_changed(event)
         current_instance = nil
         current_place = nil
         current_kingdom = nil
+        bar_instance_id = nil
         shown_at = {}
         last_x, last_z = nil, nil
         ticks_until_titles = login_delay_ticks
@@ -217,8 +235,10 @@ local function on_game_state_changed(event)
 end
 
 -- The world, or an instance, is built anew, with a loading screen: a title
--- that's showing fades away, and titles wait until it's over.
+-- that's showing fades away, and titles wait until it's over. A boss known by
+-- its health bar is forgotten, as this may be another instance.
 local function on_world_built()
+    bar_instance_id = nil
     area_title.fade_away()
     ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
     arrived_by_teleport = true
@@ -240,6 +260,16 @@ function world_tracker.current_title()
     end
     if current_kingdom then
         return current_kingdom.name, nil, current_kingdom.sprite
+    end
+    return nil
+end
+
+-- The boss fight the player is in, by name, or nil when they aren't in one
+-- (heists don't count).
+---@return string?
+function world_tracker.current_boss()
+    if current_instance and not current_instance.heist then
+        return current_instance.name
     end
     return nil
 end

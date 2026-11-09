@@ -59,6 +59,16 @@ function settings_controls.add_choice(page, label, choices, selected, on_change)
     })
 end
 
+-- How wide checkboxes with these labels need to be. prettyui makes a group as
+-- wide as the page unless given a width, and a checkbox's tooltip shows to the
+-- right of its row, so a full-width row puts it outside the window instead of
+-- by the label.
+---@param items { text: string }[]
+---@return integer
+function settings_controls.checkbox_width(items)
+    return (prettyui.CheckboxButton.getSize(items))
+end
+
 -- A single checkbox for an on/off setting.
 ---@param page table
 ---@param text string
@@ -66,7 +76,9 @@ end
 ---@param selected boolean
 ---@param on_change fun(selected: boolean)
 function settings_controls.add_toggle(page, text, tooltip, selected, on_change)
-    page:AddCheckboxButton({ { text = text, value = text, selected = selected, tooltip = tooltip } }, {
+    local items = { { text = text, value = text, selected = selected, tooltip = tooltip } }
+    page:AddCheckboxButton(items, {
+        width = settings_controls.checkbox_width(items),
         onChange = function (_, _, _, now_selected)
             on_change(now_selected)
         end
@@ -91,22 +103,87 @@ function settings_controls.add_slider(page, options)
     })
 end
 
--- The font and font size. The size can't be picked for fonts that only come
--- in one size.
+-- Where a font and font size setting is saved, like the area titles' or
+-- YOU DIED's.
+---@class FontSetting
+---@field get_font fun(): string
+---@field set_font fun(font: string)
+---@field get_size fun(): string
+---@field set_size fun(size: string)
+
+-- The area titles' font and size.
+---@type FontSetting
+settings_controls.title_font = {
+    get_font = db.get_font, set_font = db.set_font,
+    get_size = db.get_font_size, set_size = db.set_font_size,
+}
+
+-- A font and font size. The size can't be picked for fonts that only come in
+-- one size.
 ---@param page table
-function settings_controls.add_font_choices(page)
+---@param setting FontSetting
+function settings_controls.add_font_choices(page, setting)
     local size_choice
-    settings_controls.add_choice(page, "Font", area_title.fonts, db.get_font(), function (font)
-        db.set_font(font)
+    settings_controls.add_choice(page, "Font", area_title.fonts, setting.get_font(), function (font)
+        setting.set_font(font)
         if size_choice then
             size_choice:SetDisabled(not area_title.font_has_sizes(font))
         end
     end)
-    size_choice = settings_controls.add_choice(page, "Font size", area_title.sizes, db.get_font_size(),
-        db.set_font_size)
+    size_choice = settings_controls.add_choice(page, "Font size", area_title.sizes, setting.get_size(),
+        setting.set_size)
     if size_choice then
-        size_choice:SetDisabled(not area_title.font_has_sizes(db.get_font()))
+        size_choice:SetDisabled(not area_title.font_has_sizes(setting.get_font()))
     end
+end
+
+-- 1.5 -> "1.5 s"
+---@param seconds number
+---@return string
+function settings_controls.seconds_text(seconds)
+    return string.format("%.1f s", seconds)
+end
+
+-- Where fade times are saved, like the area titles' or YOU DIED's.
+---@class FadeSetting
+---@field get fun(): number, number, number Fade in, stay and fade out, in seconds
+---@field set_fade_in fun(seconds: number)
+---@field set_stay fun(seconds: number)
+---@field set_fade_out fun(seconds: number)
+
+-- Sliders for how long something fades in, stays and fades out.
+---@param page table
+---@param what string What fades, for the tooltips, like "the title"
+---@param setting FadeSetting
+function settings_controls.add_fade_sliders(page, what, setting)
+    local fade_in, stay, fade_out = setting.get()
+    settings_controls.add_slider(page, {
+        label = function (seconds) return "Fade in: " .. settings_controls.seconds_text(seconds) end,
+        min = 0,
+        max = 3,
+        step = 0.5,
+        value = fade_in,
+        tooltip = "How long " .. what .. " takes to appear",
+        on_change = setting.set_fade_in,
+    })
+    settings_controls.add_slider(page, {
+        label = function (seconds) return "Stays: " .. settings_controls.seconds_text(seconds) end,
+        min = 0.5,
+        max = 10,
+        step = 0.5,
+        value = stay,
+        tooltip = "How long " .. what .. " stays before fading out",
+        on_change = setting.set_stay,
+    })
+    settings_controls.add_slider(page, {
+        label = function (seconds) return "Fade out: " .. settings_controls.seconds_text(seconds) end,
+        min = 0,
+        max = 3,
+        step = 0.5,
+        value = fade_out,
+        tooltip = "How long " .. what .. " takes to disappear",
+        on_change = setting.set_fade_out,
+    })
 end
 
 ---@param page table

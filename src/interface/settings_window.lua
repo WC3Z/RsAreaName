@@ -1,9 +1,10 @@
 -- A separate, movable window with all the settings, opened from the plugin's
--- page. Its tabs are Text (how titles look and how long they show), Sound, and
+-- page. Its tabs are Text (how titles look and how long they show), Sound,
 -- Areas (which kinds of area, and which kingdoms, places, boss fights and
--- heists get titles).
+-- heists get titles) and Death (the YOU DIED screen and the death jingle).
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
+local death_screen = require("src/ui/death_screen")
 local world_areas = require("src/game/world_areas")
 local settings_controls = require("src/interface/settings_controls")
 local area_checkboxes = require("src/interface/area_checkboxes")
@@ -13,6 +14,15 @@ local settings_window = {}
 local window
 local tabs
 
+local key_subscription_name = "area-names-settings-escape"
+
+-- Which area lists are open, by heading. Kept while the game is running, so
+-- they're still open when the window is opened again.
+---@type table<string, boolean>
+local open_lists = {}
+-- Which tab is open, kept the same way.
+local open_tab = 1
+
 -- The main game screen, so the window can be moved anywhere over the game.
 local function game_area()
     return ui.Interfaces:GetComponent(id.Component.TOPLEVEL_V2__GAME_AREA)
@@ -20,15 +30,9 @@ end
 
 local seconds_per_tick = 0.6
 
----@param seconds number
----@return string
-local function seconds_text(seconds)
-    return string.format("%.1f s", seconds)
-end
-
 ---@param page table
 local function add_text_page(page)
-    settings_controls.add_font_choices(page)
+    settings_controls.add_font_choices(page, settings_controls.title_font)
     settings_controls.add_choice(page, "Colour", area_title.colours, db.get_colour(), db.set_colour)
     page:AddText("Custom colour")
     page:AddColourPicker({
@@ -51,36 +55,14 @@ local function add_text_page(page)
         tooltip = "How far down the screen the title is",
         on_change = db.set_title_height,
     })
-    local fade_in, stay, fade_out = db.get_title_timing()
-    settings_controls.add_slider(page, {
-        label = function (seconds) return "Fade in: " .. seconds_text(seconds) end,
-        min = 0,
-        max = 3,
-        step = 0.5,
-        value = fade_in,
-        tooltip = "How long the title takes to appear",
-        on_change = db.set_fade_in,
+    settings_controls.add_fade_sliders(page, "the title", {
+        get = db.get_title_timing,
+        set_fade_in = db.set_fade_in,
+        set_stay = db.set_stay,
+        set_fade_out = db.set_fade_out,
     })
     settings_controls.add_slider(page, {
-        label = function (seconds) return "Stays: " .. seconds_text(seconds) end,
-        min = 0.5,
-        max = 10,
-        step = 0.5,
-        value = stay,
-        tooltip = "How long the title stays before fading out",
-        on_change = db.set_stay,
-    })
-    settings_controls.add_slider(page, {
-        label = function (seconds) return "Fade out: " .. seconds_text(seconds) end,
-        min = 0,
-        max = 3,
-        step = 0.5,
-        value = fade_out,
-        tooltip = "How long the title takes to disappear",
-        on_change = db.set_fade_out,
-    })
-    settings_controls.add_slider(page, {
-        label = function (ticks) return "Delay after teleport: " .. seconds_text(ticks * seconds_per_tick) end,
+        label = function (ticks) return "Delay after teleport: " .. settings_controls.seconds_text(ticks * seconds_per_tick) end,
         min = 0,
         max = 5,
         step = 1,
@@ -100,9 +82,6 @@ local function add_sound_page(page)
     settings_controls.add_toggle(page, "Stop the sound with the title",
         "Cuts the sound off when the title is gone. A playing sound can't be faded, so it's a hard stop. Off: sounds always play to the end",
         db.get_stop_sound_with_title(), db.set_stop_sound_with_title)
-    settings_controls.add_toggle(page, "Play the death jingle on death",
-        "Plays the death jingle when you respawn in Death's Office after dying, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
-        db.get_death_jingle_on(), db.set_death_jingle_on)
     page:AddSimpleButton("Play", function ()
         area_title.play_sound()
     end)
@@ -120,6 +99,33 @@ local function add_sound_page(page)
                 area_title.play_sound()
             end
         end
+    })
+end
+
+-- What happens when the player dies: the YOU DIED screen and the death jingle.
+---@param page table
+local function add_death_page(page)
+    settings_controls.add_toggle(page, "Show YOU DIED when you die",
+        "Darkens the screen and shows YOU DIED in red when your lifepoints hit 0 and stay there, like in Dark Souls",
+        db.get_death_screen_on(), db.set_death_screen_on)
+    settings_controls.add_toggle(page, "Insult me",
+        "Shows a random insult under YOU DIED",
+        db.get_death_insults_on(), db.set_death_insults_on)
+    settings_controls.add_toggle(page, "Play the death jingle on death",
+        "Plays the death jingle when you die, always to its end. The game plays its own death jingle only with music turned on; with music on you'll hear both, so you may want this off",
+        db.get_death_jingle_on(), db.set_death_jingle_on)
+    page:AddSimpleButton("Preview", function ()
+        death_screen.preview()
+    end)
+    settings_controls.add_font_choices(page, {
+        get_font = db.get_death_font, set_font = db.set_death_font,
+        get_size = db.get_death_font_size, set_size = db.set_death_font_size,
+    })
+    settings_controls.add_fade_sliders(page, "YOU DIED", {
+        get = db.get_death_timing,
+        set_fade_in = db.set_death_fade_in,
+        set_stay = db.set_death_stay,
+        set_fade_out = db.set_death_fade_out,
     })
 end
 
@@ -151,6 +157,8 @@ local function instance_lists()
     return bosses, heists
 end
 
+-- The kingdoms, places, boss fights and heists are lists that can be opened
+-- and closed, so the tab isn't one very long page.
 ---@param page table
 local function add_areas_page(page)
     page:AddTitle("Show titles for")
@@ -164,6 +172,7 @@ local function add_areas_page(page)
         })
     end
     page:AddCheckboxButton(items, {
+        width = settings_controls.checkbox_width(items),
         onChange = function (_, _, kind, selected)
             db.set_show_kind(kind, selected)
         end
@@ -187,9 +196,6 @@ local function add_areas_page(page)
             db.set_area_hidden(name, not shown)
         end
     end
-    area_checkboxes.add(page, "Kingdoms", world_areas.kingdoms, is_shown, set_shown)
-    area_checkboxes.add(page, "Places", world_areas.places, is_shown, set_shown)
-
     local bosses, heists = instance_lists()
     local function is_instance_shown(key)
         return not db.is_instance_hidden(tonumber(key))
@@ -199,8 +205,19 @@ local function add_areas_page(page)
             db.set_instance_hidden(tonumber(key), not shown)
         end
     end
-    area_checkboxes.add(page, "Boss fights", bosses, is_instance_shown, set_instances_shown)
-    area_checkboxes.add(page, "Heists", heists, is_instance_shown, set_instances_shown)
+
+    local function add_list(heading, areas, is_checked, set_checked)
+        area_checkboxes.add(page, heading, areas, is_checked, set_checked, {
+            expanded = open_lists[heading] == true,
+            on_toggle = function (expanded)
+                open_lists[heading] = expanded
+            end,
+        })
+    end
+    add_list("Kingdoms", world_areas.kingdoms, is_shown, set_shown)
+    add_list("Places", world_areas.places, is_shown, set_shown)
+    add_list("Boss fights", bosses, is_instance_shown, set_instances_shown)
+    add_list("Heists", heists, is_instance_shown, set_instances_shown)
 end
 
 -- prettyui only re-measures the window's own scroll area when the window is
@@ -217,37 +234,75 @@ local function refresh_tabs_on_resize()
     end
 end
 
+-- Saves where the window is and how big, so it opens like that next time.
+-- prettyui has no callback for resizing, and versions before 1.3.0 don't
+-- call onPositionChange either, so this is done when the window closes.
+---@param closing table The prettyui window
+local function save_bounds(closing)
+    db.set_settings_window_position(closing.root.x, closing.root.y)
+    db.set_settings_window_size(closing.root.width, closing.root.height)
+end
+
 -- Opens the window, or brings back a fresh one if it's already open, so it
--- shows settings changed on the plugin's page meanwhile.
+-- shows settings changed on the plugin's page meanwhile. It opens where it was
+-- and at the size it had when it was last closed.
 function settings_window.open()
     settings_window.close()
+    local saved_x, saved_y = db.get_settings_window_position()
+    local width, height = db.get_settings_window_size()
     window = prettyui.Window.new(game_area(), {
         categoryID = "auto",
         title = "Area Names settings",
-        width = 320,
-        height = 440,
+        x = saved_x,
+        y = saved_y,
+        width = width,
+        height = height,
         resizable = true,
         minWidth = 240,
         minHeight = 200,
         -- The tabs scroll instead.
         scrollable = false,
         destroyOnClose = true,
-        onClose = function ()
+        onClose = function (closing)
+            save_bounds(closing)
             window = nil
             tabs = nil
         end,
+        onPositionChange = function (_, x, y)
+            db.set_settings_window_position(x, y)
+        end,
     })
     refresh_tabs_on_resize()
+    -- Escape closes the window, like the game's own interfaces. The game
+    -- still gets the key too. Left subscribed when the window closes this way
+    -- (it does nothing without a window) rather than unsubscribing from
+    -- inside the key's own event.
+    Event.KeyDown.Subscribe(key_subscription_name, function (event)
+        if window and not event.isRepeat and event.gameKey == GameKey.ESCAPE then
+            window:Close()
+        end
+    end)
     -- prettyui tabs keep a fixed height, so they're made to fill the window,
     -- and each tab scrolls on its own.
-    tabs = window:AddTabs({ "Text", "Sound", "Areas" }, { y = 0, height = 0, heightAnchor = 1.0 })
+    tabs = window:AddTabs({ "Text", "Sound", "Areas", "Death" }, {
+        activeIndex = open_tab,
+        y = 0,
+        height = 0,
+        heightAnchor = 1.0,
+        onChange = function (_, index)
+            open_tab = index
+        end,
+    })
     add_text_page(tabs:GetPage(1))
     add_sound_page(tabs:GetPage(2))
     add_areas_page(tabs:GetPage(3))
+    add_death_page(tabs:GetPage(4))
 end
 
 function settings_window.close()
+    Event.KeyDown.Unsubscribe(key_subscription_name)
     if window then
+        save_bounds(window)
         window:Destroy()
         window = nil
         tabs = nil
