@@ -18,7 +18,7 @@ local low_ping_ms = 30
 -- How often an insult that fits this death in particular (one with a
 -- `when`, like a boss's) is picked over the ones that always fit, when there
 -- is one. Otherwise they'd hardly ever show among the many that always fit.
-local situational_chance = 1.0
+local situational_chance = 0.1
 
 ---@param context DeathContext
 ---@return boolean

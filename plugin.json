@@ -1,6 +1,6 @@
 {
     "name": "Area Names",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "contactEmailAddress": "wc3zrs@gmail.com",
     "requiredDependencies": {
         "prettyui": 6398181
