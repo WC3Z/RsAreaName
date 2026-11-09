@@ -60,6 +60,7 @@ insults.all = {
 	{ text = "Really? YOU are the World Guardian? We're doomed." },
 	{ text = "You have the survival instincts of a stormtrooper." },
 	{ text = "What happened?" },
+	{ text = "You must be deaths favourite client" },
 	{ text = "Server lag again?", when = low_ping },
 	-- OSRS meme - "I tick eat th ose" etc
 	{ text = "You tick eat th ose" },
@@ -77,7 +78,9 @@ insults.all = {
 	{ text = "Three kings, zero chance", when = boss("Dagannoth Kings") },
 	{ text = "Long live the King", when = boss("Kalphite King") },
 	{ text = "Chaos wins again", when = boss("Zamorak") },
+	-- TODO - verify boss names
 	{ text = "Boss got nerfed and you're still dying.", when = boss("Raksha") },
+	{ text = "Even the Corporeal Beast couldn't stomach your presence", when = boss("Corporeal Beast") },
 }
 
 -- The insult shown last time, so the next one is a different one when
