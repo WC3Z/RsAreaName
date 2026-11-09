@@ -49,7 +49,7 @@ insults.all = {
 	{ text = "Maybe you'd be better off a skiller" },
 	{ text = "Sit." },
 	{ text = "Just retire" },
-	-- Implying a vote kick
+	-- Implying a vote kick - TODO : add as AOD message
 	{ text = "1/4" },
 	{ text = "Nice hp" },
 	{ text = "Get this guy off my Clawdia team" },
