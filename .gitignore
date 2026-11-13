@@ -6,3 +6,5 @@ build.local.sh
 
 .luarc.json
 node_modules/
+
+test
