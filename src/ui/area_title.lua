@@ -8,9 +8,10 @@ local area_title = {}
 
 local subscription_name = "area-names-title"
 
--- What apostrophes in names are shown as. The fonts draw a plain ' low, like a
--- comma, and have no curly one, so it's swapped for a grave accent.
-local apostrophe = "`"
+-- What apostrophes in names are shown as, unless the font says otherwise (see
+-- area_title.fonts). Most fonts draw a plain ' low, like a comma, or not at
+-- all, and have no curly one, so it's swapped for a grave accent.
+local default_apostrophe = "`"
 
 -- The choices for each setting. Each has the id it's saved as, and the label
 -- shown on the settings page.
@@ -18,7 +19,9 @@ local apostrophe = "`"
 -- Fonts only come in fixed sizes, so each font has one for the title and one
 -- for the subtitle at each of the sizes below. A font whose spaces look too
 -- narrow in titles at a size can have title_spaces: how many spaces each one
--- becomes at that size.
+-- becomes at that size. A font that has a curly apostrophe sets apostrophe to
+-- it, since a grave accent looks wrong in a plain font. A font with only
+-- capital letters sets uppercase, as it leaves lower case ones out.
 area_title.fonts = {
     {
         id = "cinzel", label = "Cinzel",
@@ -28,6 +31,7 @@ area_title.fonts = {
     },
     {
         id = "museo", label = "Museo Sans",
+        apostrophe = "\u{2019}",
         title = { small = id.Font.MUSEO_SANS_21PT_BOLD, medium = id.Font.MUSEO_SANS_24PT_BOLD, large = id.Font.MUSEO_SANS_27PT_BOLD },
         subtitle = { small = id.Font.MUSEO_SANS_13PT_BOLD, medium = id.Font.MUSEO_SANS_15PT_BOLD, large = id.Font.MUSEO_SANS_17PT_BOLD },
     },
@@ -38,6 +42,7 @@ area_title.fonts = {
     },
     {
         id = "scratched", label = "Scratched",
+        uppercase = true,
         title = { small = id.Font.LUC2_FONT_SCRATCH_LARGE, medium = id.Font.LUC2_FONT_SCRATCH_LARGE, large = id.Font.LUC2_FONT_SCRATCH_LARGE },
         subtitle = { small = id.Font.LUC2_FONT_SCRATCH, medium = id.Font.LUC2_FONT_SCRATCH, large = id.Font.LUC2_FONT_SCRATCH },
     },
@@ -48,6 +53,7 @@ area_title.fonts = {
     },
     {
         id = "noto_sans", label = "Noto Sans",
+        apostrophe = "\u{2019}",
         title = { small = id.Font.NOTOSANS_BOLD_36, medium = id.Font.NOTOSANS_BOLD_44, large = id.Font.NOTOSANS_BOLD_50 },
         subtitle = { small = id.Font.NOTOSANS_BOLD_18, medium = id.Font.NOTOSANS_BOLD_21, large = id.Font.NOTOSANS_BOLD_24 },
     },
@@ -139,22 +145,35 @@ function area_title.find_size(size_id)
     return find(area_title.sizes, size_id)
 end
 
--- A title as it's drawn in this font and size: apostrophes swapped (see
--- `apostrophe`) and spaces widened where the font needs it.
+-- The text with its apostrophes swapped for the ones this font draws well,
+-- and in capitals if it only has those.
+---@param text string
+---@param font table An entry in area_title.fonts
+---@return string
+local function fit_to_font(text, font)
+    if font.uppercase then
+        text = text:upper()
+    end
+    return (text:gsub("'", font.apostrophe or default_apostrophe))
+end
+
+-- A title as it's drawn in this font and size: fitted to the font (see
+-- fit_to_font) and spaces widened where the font needs it.
 ---@param text string
 ---@param font table An entry in area_title.fonts
 ---@param size table An entry in area_title.sizes
 ---@return string
 function area_title.title_text(text, font, size)
     local spaces = string.rep(" ", font.title_spaces and font.title_spaces[size.id] or 1)
-    return (text:gsub("'", apostrophe):gsub(" ", spaces))
+    return (fit_to_font(text, font):gsub(" ", spaces))
 end
 
--- A subtitle as it's drawn: apostrophes swapped (see `apostrophe`).
+-- A subtitle as it's drawn in this font (see fit_to_font).
 ---@param text string
+---@param font table An entry in area_title.fonts
 ---@return string
-function area_title.subtitle_text(text)
-    return (text:gsub("'", apostrophe))
+function area_title.subtitle_text(text, font)
+    return fit_to_font(text, font)
 end
 
 ---@type ui.Text?
@@ -447,7 +466,7 @@ start_title = function (name, subtitle_text, sprite_name, sound_id)
     local font = find(area_title.fonts, db.get_font())
     local size = find(area_title.sizes, db.get_font_size())
     title.content = area_title.title_text(name, font, size)
-    subtitle.content = area_title.subtitle_text(subtitle_text or "")
+    subtitle.content = area_title.subtitle_text(subtitle_text or "", font)
     title.alpha = 0
     subtitle.alpha = 0
     shown_alpha = 0

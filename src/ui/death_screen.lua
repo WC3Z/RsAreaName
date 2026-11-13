@@ -73,14 +73,13 @@ local function death_context()
     }
 end
 
--- An insult for the death, if the player wants one, as it's drawn.
+-- An insult for the death, if the player wants one.
 ---@return string
 local function insult_text()
     if not db.get_death_insults_on() then
         return ""
     end
-    local text = insults.pick(death_context())
-    return text and area_title.subtitle_text(text) or ""
+    return insults.pick(death_context()) or ""
 end
 
 ---@param event DrawEventPayload
@@ -136,7 +135,7 @@ local function make_components(insult_content)
     text = new_text(0, (1 - band_height) / 2, 0, band_height, font.title[size.id])
     text.content = area_title.title_text("YOU DIED", font, size)
     insult = new_text(insult_gaps[size.id], 0.5, 40, 0, font.subtitle[size.id])
-    insult.content = insult_content
+    insult.content = area_title.subtitle_text(insult_content, font)
 end
 
 function death_screen.start()
