@@ -42,6 +42,7 @@ end
 
 ---@type Insult[]
 insults.all = {
+	{ text = "Git gud" },
 	{ text = "Skill issue" },
 	{ text = "Lmao" },
 	{ text = "That the best you got?" },
