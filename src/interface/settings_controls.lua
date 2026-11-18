@@ -1,6 +1,7 @@
 -- The setting controls the plugin's page and the settings window share.
 local db = require("src/database/db")
 local area_title = require("src/ui/area_title")
+local title_styles = require("src/ui/title_styles")
 local world_tracker = require("src/tracker/world_tracker")
 
 local settings_controls = {}
@@ -124,16 +125,16 @@ settings_controls.title_font = {
 ---@param setting FontSetting
 function settings_controls.add_font_choices(page, setting)
     local size_choice
-    settings_controls.add_choice(page, "Font", area_title.fonts, setting.get_font(), function (font)
+    settings_controls.add_choice(page, "Font", title_styles.fonts, setting.get_font(), function (font)
         setting.set_font(font)
         if size_choice then
-            size_choice:SetDisabled(not area_title.font_has_sizes(font))
+            size_choice:SetDisabled(not title_styles.font_has_sizes(font))
         end
     end)
-    size_choice = settings_controls.add_choice(page, "Font size", area_title.sizes, setting.get_size(),
+    size_choice = settings_controls.add_choice(page, "Font size", title_styles.sizes, setting.get_size(),
         setting.set_size)
     if size_choice then
-        size_choice:SetDisabled(not area_title.font_has_sizes(setting.get_font()))
+        size_choice:SetDisabled(not title_styles.font_has_sizes(setting.get_font()))
     end
 end
 
@@ -198,9 +199,9 @@ end
 ---@param page table
 function settings_controls.add_preview_button(page)
     page:AddSimpleButton("Preview", function ()
-        local name, subtitle, sprite, sound = world_tracker.current_title()
+        local name, subtitle, sprite = world_tracker.current_title()
         if name then
-            area_title.show(name, subtitle, sprite, sound)
+            area_title.show(name, subtitle, sprite)
         else
             area_title.preview()
         end

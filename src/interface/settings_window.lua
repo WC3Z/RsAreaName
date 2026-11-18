@@ -3,7 +3,8 @@
 -- Areas (which kinds of area, and which kingdoms, places, boss fights and
 -- heists get titles) and Death (the YOU DIED screen and the death jingle).
 local db = require("src/database/db")
-local area_title = require("src/ui/area_title")
+local title_styles = require("src/ui/title_styles")
+local title_sounds = require("src/ui/title_sounds")
 local death_screen = require("src/ui/death_screen")
 local world_areas = require("src/game/world_areas")
 local settings_controls = require("src/interface/settings_controls")
@@ -33,7 +34,7 @@ local seconds_per_tick = 0.6
 ---@param page table
 local function add_text_page(page)
     settings_controls.add_font_choices(page, settings_controls.title_font)
-    settings_controls.add_choice(page, "Colour", area_title.colours, db.get_colour(), db.set_colour)
+    settings_controls.add_choice(page, "Colour", title_styles.colours, db.get_colour(), db.set_colour)
     page:AddText("Custom colour")
     page:AddColourPicker({
         value = db.get_custom_colour(),
@@ -83,11 +84,11 @@ local function add_sound_page(page)
         "Cuts the sound off when the title is gone. A playing sound can't be faded, so it's a hard stop. Off: sounds always play to the end",
         db.get_stop_sound_with_title(), db.set_stop_sound_with_title)
     page:AddSimpleButton("Play", function ()
-        area_title.play_sound()
+        title_sounds.play()
     end)
     page:AddTitle("Sound")
     local items = {}
-    for _, sound in ipairs(area_title.sounds) do
+    for _, sound in ipairs(title_sounds.all) do
         table.insert(items, { text = sound.label, value = sound.id })
     end
     page:AddRadioButton(items, {
@@ -96,7 +97,7 @@ local function add_sound_page(page)
             if sound then
                 db.set_sound(sound)
                 -- So the sound can be heard while picking one.
-                area_title.play_sound()
+                title_sounds.play()
             end
         end
     })

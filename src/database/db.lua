@@ -317,7 +317,7 @@ function Db.set_death_insults_on(on)
 end
 
 -- YOU DIED's own font and size, apart from the area titles', as ids in
--- area_title.fonts and area_title.sizes.
+-- title_styles.fonts and title_styles.sizes.
 ---@return string
 function Db.get_death_font()
     return get_string(death_font_key, "cinzel")

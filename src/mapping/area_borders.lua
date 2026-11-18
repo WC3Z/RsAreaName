@@ -86,19 +86,6 @@ local function add_lines(colour, points, player_tile, fine_offset)
     finish_line()
 end
 
--- The points around a rectangle's outer edge, one a tile.
----@param bounds integer[] { min x, min z, max x, max z }, both ends included
----@return number[][]
-local function rectangle_points(bounds)
-    local min_x, min_z, max_x, max_z = bounds[1], bounds[2], bounds[3] + 1, bounds[4] + 1
-    local points = {}
-    for x = min_x, max_x do table.insert(points, { x, min_z }) end
-    for z = min_z + 1, max_z do table.insert(points, { max_x, z }) end
-    for x = max_x - 1, min_x, -1 do table.insert(points, { x, max_z }) end
-    for z = max_z - 1, min_z, -1 do table.insert(points, { min_x, z }) end
-    return points
-end
-
 -- The points along lines between the given corners, one a tile, through
 -- the middle of the corner tiles.
 ---@param corners integer[][]
@@ -142,18 +129,8 @@ end
 ---@param colour integer
 ---@param player_tile CoordGrid
 ---@param fine_offset Vector3
-local function add_rectangles(area, colour, player_tile, fine_offset)
-    if area.points then
-        add_lines(colour, outline_points(area.points, true), player_tile, fine_offset)
-        return
-    end
-    for _, bounds in ipairs(area.bounds) do
-        local far = bounds[1] - view_distance > player_tile.x or bounds[3] + view_distance < player_tile.x
-            or bounds[2] - view_distance > player_tile.z or bounds[4] + view_distance < player_tile.z
-        if not far then
-            add_lines(colour, rectangle_points(bounds), player_tile, fine_offset)
-        end
-    end
+local function add_kingdom_border(area, colour, player_tile, fine_offset)
+    add_lines(colour, outline_points(area.points, true), player_tile, fine_offset)
 end
 
 local function on_tick()
@@ -171,7 +148,7 @@ local function on_tick()
 
     for _, kingdom in ipairs(world_areas.kingdoms) do
         if areas_shown[kingdom.name] then
-            add_rectangles(kingdom, colour_of(kingdom.name), player_tile, fine_offset)
+            add_kingdom_border(kingdom, colour_of(kingdom.name), player_tile, fine_offset)
         end
     end
     for _, place in ipairs(world_areas.places) do

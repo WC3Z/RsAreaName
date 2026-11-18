@@ -10,20 +10,28 @@ A RuneScape 3 plugin that announces where you are, like the area titles in the S
 - **Lodestone shields** above the names of areas that have one.
 - **No titles during loading screens.** After a teleport, the title waits until the loading screen is over, then shows where you arrived.
 - **No repeats when walking back in.** Stepping out of a place and straight back in doesn't show its title again for a while (see Settings). Arriving by teleport always shows it.
+- **YOU DIED** when you die, if you turn it on, with an optional insult (see below).
+
+## YOU DIED
+
+When you die, the screen darkens and **YOU DIED** shows in red across the middle, like in the Souls games, with a random insult under it if you turn that on. Some insults only show when they fit, like ones for the boss you died to.
+
+A death is told from your lifepoints: they drop to 0 and stay there for a couple of game ticks. A death where a heal lands on the same tick is caught when you respawn instead. It's off until you turn it on, on the settings window's Death tab.
 
 ## Settings
 
-The plugin's page (its ribbon icon) has the most used ones: **Font**, **Font size**, **Play a sound**, **Preview** (the title for where you are now, or an example when that's nowhere named), and **Open settings** for the rest. The settings window has three tabs:
+The plugin's page (its ribbon icon) has the most used ones: **Font**, **Font size**, **Play a sound**, **Preview** (the title for where you are now, or an example when that's nowhere named), and **Open settings** for the rest. The settings window has four tabs:
 
 - **Text**: **Font**, **Font size** (greyed out for fonts that come in just one size), **Colour** with a **Custom colour** picker, **Show shields** (the lodestone shield above the name), **Height on screen**, how long the title takes to **fade in**, **stays** and takes to **fade out**, and the **Delay after teleport** (how long titles wait after a teleport so they don't play under its loading screen; 0 shows them at once, for when loading screens are off).
-- **Sound**: **Play a sound**, **Stop the sound with the title** (cuts it off when the title is gone; the game can't fade a playing sound, so it's a hard stop, and it's off by default so sounds play to the end), **Play the death jingle on death** (when you respawn in Death's Office, whatever the other sound settings; the game plays its own death jingle only with music on, so with music on you'd hear both), a **Play** button, and every **Sound** to pick from (picking one plays it). Needs the game's sound effects turned on.
+- **Sound**: **Play a sound**, **Stop the sound with the title** (cuts it off when the title is gone; the game can't fade a playing sound, so it's a hard stop, and it's off by default so sounds play to the end), a **Play** button, and every **Sound** to pick from (picking one plays it). Needs the game's sound effects turned on.
 - **Areas**: which kinds of area get titles (kingdoms, places, boss fights, heists), **Repeat titles after**: how long before an area's title shows again when you walk back in (0 shows it every time), and a checkbox for every kingdom, place, boss fight and heist. Untick one to stop its title; inside an unticked place, a bigger place around it shows instead. All of these are saved between sessions.
+- **Death**: **Show YOU DIED when you die** (see below), **Insult me**, **Play the death jingle on death** (always to its end, whatever the other sound settings; the game plays its own death jingle only with music on, so with music on you'd hear both), a **Preview** button, and the **Font**, **Font size** and fade times of YOU DIED, which are separate from the area titles'.
 
 Dev builds also have a **Map borders** tab on the plugin's page, a debug tool for mapping areas, see [Mapping areas](#mapping-areas).
 
 ## Contributing areas
 
-New areas, better borders and fixes to the ones there are very welcome. All of them are in [`src/game/world_areas.lua`](src/game/world_areas.lua). Positions are **world tiles** (a map square is 64 of them), the `x` and `z` of the player's `coordGrid`.
+New areas, better borders and fixes to the ones there are very welcome. They're in [`src/game/data/`](src/game/data): [`places.lua`](src/game/data/places.lua), [`kingdoms.lua`](src/game/data/kingdoms.lua) and [`instances.lua`](src/game/data/instances.lua). Positions are **world tiles** (a map square is 64 of them), the `x` and `z` of the player's `coordGrid`.
 
 There are three kinds:
 
@@ -34,13 +42,13 @@ There are three kinds:
   { name = "Grand Exchange", at = { 3165, 3487 }, radius = 20 },
   ```
 
-- **Kingdoms** are an outline (`points`, like a place's) or one or more rectangles, each `{ min x, min z, max x, max z }`. Their title shows when you cross into one outside any place. Like places, you only count as having left a kingdom with an outline 5 tiles past its edge. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
+- **Kingdoms** are an outline (`points`, like a place's). Their title shows when you cross into one outside any place. Like places, you only count as having left a kingdom 5 tiles past its edge. Where kingdoms overlap, the first one in the list wins, so put a kingdom before a neighbour whose border reaches over it.
 
   ```lua
   { name = "Karamja", sprite = "THAS_SHIELD_KARAMJA", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
   ```
 
-- **Instances** are named by their **instance id** (`world_areas.instances`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places and kingdoms. Some bosses only set it once the fight starts, and some never do, like Silverquill, or aren't in an instance, like the Chaos Elemental: those are known by the name on the boss health bar once the fight starts (the instance's `name`, its name and subtitle like "Silverquill the Dreadhog", or one of its `bar_names`, ignoring case and a leading "The"), until you leave the instance (or, outside instances, walk 32 tiles away).
+- **Instances** are named by their **instance id** (`src/game/data/instances.lua`): the game's `BOSS_INSTANCE_CURRENT_BOSS` while you're in one. For bosses it's their Reaper task id (`BSLAY_ID`), and heists have their own (500 and 501). An instance with a known id wins over places and kingdoms. Some bosses only set it once the fight starts, and some never do, like Silverquill, or aren't in an instance, like the Chaos Elemental: those are known by the name on the boss health bar once the fight starts (the instance's `name`, its name and subtitle like "Silverquill the Dreadhog", or one of its `bar_names`, ignoring case and a leading "The"), until you leave the instance (or, outside instances, walk 32 tiles away).
 
   ```lua
   [30] = { name = "Solak", subtitle = "Guardian of the Grove" },
@@ -74,7 +82,7 @@ Better World Map by jadefx is a world map plugin. With a few additions, your cop
    [Area Names] { name = "New place", points = { { 2987, 2878 }, { 3020, 3020 }, ... } },
    ```
 
-5. Paste it into `world_areas.lua`, rename it and add its subtitle and sprite. Rebuild, tick the area on the **Map borders** tab and check it on the map and on the ground.
+5. Paste it into `src/game/data/places.lua` (or `kingdoms.lua`), rename it and add its subtitle and sprite. Rebuild, tick the area on the **Map borders** tab and check it on the map and on the ground.
 
 The clicks give real tiles even where the map shows a region moved away from its real place (Havenhythe, Prifddinas, Anachronia), using Better World Map's own map data.
 
@@ -112,6 +120,14 @@ To add one:
 
    This writes `resources/shields/THAS_SHIELD_VARROCK.png`.
 3. Rebuild, and restart the game client: it only finds new files in `resources/` when it starts, so reloading the plugin isn't enough.
+
+## Testing
+
+The parts that don't need the game are tested outside it: finding the area for a tile (and the area data itself), which title shows when you come into an area, a title's fading over time, fitting text to a font, and picking an insult (see [`tests/`](tests)). They need Node.js:
+
+```bash
+cd tests && npm install && npm test
+```
 
 ## Building
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copies the plugin into Area-Names/, leaving out the tests.
+# Copies the plugin into Area-Names/, leaving out the tests and tools.
 #
 #   ./build.sh           dev build, plugin.json as it is in the repo
 #   ./build.sh release   release build, without console commands; optional permissions become required and

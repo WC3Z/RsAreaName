@@ -3,7 +3,8 @@
 -- insult under it if the player wants one. It all fades in, stays a while and
 -- fades out again.
 local db = require("src/database/db")
-local area_title = require("src/ui/area_title")
+local title_styles = require("src/ui/title_styles")
+local title_sounds = require("src/ui/title_sounds")
 local fade = require("src/ui/fade")
 local insults = require("src/game/insults")
 local world_tracker = require("src/tracker/world_tracker")
@@ -128,14 +129,14 @@ end
 -- game and the insult's place depends on the font size.
 ---@param insult_content string
 local function make_components(insult_content)
-    local font = area_title.find_font(db.get_death_font())
-    local size = area_title.find_size(db.get_death_font_size())
+    local font = title_styles.find_font(db.get_death_font())
+    local size = title_styles.find_size(db.get_death_font_size())
     screen_shade = new_shade(root, 1.0)
     band_shade = new_shade(root, band_height)
     text = new_text(0, (1 - band_height) / 2, 0, band_height, font.title[size.id])
-    text.content = area_title.title_text("YOU DIED", font, size)
+    text.content = title_styles.title_text("YOU DIED", font, size)
     insult = new_text(insult_gaps[size.id], 0.5, 40, 0, font.subtitle[size.id])
-    insult.content = area_title.subtitle_text(insult_content, font)
+    insult.content = title_styles.subtitle_text(insult_content, font)
 end
 
 function death_screen.start()
@@ -162,7 +163,7 @@ local function play(show_screen)
         death_screen.show()
     end
     if db.get_death_jingle_on() then
-        area_title.play_sound("death_jingle")
+        title_sounds.play("death_jingle")
     end
 end
 

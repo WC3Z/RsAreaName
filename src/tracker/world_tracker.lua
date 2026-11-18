@@ -1,5 +1,6 @@
 local db = require("src/database/db")
 local world_areas = require("src/game/world_areas")
+local area_choice = require("src/tracker/area_choice")
 local area_title = require("src/ui/area_title")
 
 local world_tracker = {}
@@ -29,39 +30,39 @@ local copied_block_size = 8
 -- has to go to have left its fight, for bosses outside instances.
 local leave_fight_distance = 32
 
----@type WorldInstance?
-local current_instance = nil
----@type WorldPlace?
-local current_place = nil
----@type WorldKingdom?
-local current_kingdom = nil
--- The boss last known by its health bar's name, and the player's tile when
--- the bar was last seen. It stays until the player leaves, as the bar goes
--- away when the fight ends, and when the player dies.
----@type integer?
-local bar_instance_id = nil
----@type integer?
-local bar_x = nil
----@type integer?
-local bar_z = nil
+-- Everything the tracker keeps between game ticks. Made anew when the player
+-- leaves the game (see on_game_state_changed) and when the plugin stops.
+---@class TrackerState
+---@field where Whereabouts The areas the player was in on the last game tick that titles could show.
+---@field bar_instance_id integer? The boss last known by its health bar's name. It stays until the player leaves, as the bar goes away when the fight ends, and when the player dies.
+---@field bar_x integer? The player's tile when the bar was last seen.
+---@field bar_z integer?
+---@field ticks_until_titles integer Game ticks left before titles show, after logging in or a loading screen.
+---@field in_game boolean Whether the game is being played, and not loading, reconnecting or in the lobby. Titles wait until it is.
+---@field tick integer Game ticks since the state was made.
+---@field shown_at table<WorldInstance|WorldPlace|WorldKingdom, integer> The tick each area's title was last shown at.
+---@field arrived_by_teleport boolean Whether the player got where they are by teleport (or portal), so its title shows even if it was shown a moment ago.
+---@field last_x integer? Where the player was on the last game tick, to tell teleports apart.
+---@field last_z integer?
 
--- Game ticks left before titles show, after logging in or a loading screen.
-local ticks_until_titles = login_delay_ticks
--- Whether the game is being played, and not loading, reconnecting or in the
--- lobby. Titles wait until it is.
-local in_game = true
--- Game ticks since the plugin started, and when each area's title was last shown.
-local tick = 0
----@type table<WorldInstance|WorldPlace|WorldKingdom, integer>
-local shown_at = {}
--- Whether the player got where they are by teleport (or portal), so its
--- title shows even if it was shown a moment ago.
-local arrived_by_teleport = false
--- Where the player was on the last game tick, to tell teleports apart.
----@type integer?
-local last_x = nil
----@type integer?
-local last_z = nil
+---@return TrackerState
+local function new_state()
+    return {
+        where = {},
+        bar_instance_id = nil,
+        bar_x = nil,
+        bar_z = nil,
+        ticks_until_titles = login_delay_ticks,
+        in_game = true,
+        tick = 0,
+        shown_at = {},
+        arrived_by_teleport = false,
+        last_x = nil,
+        last_z = nil,
+    }
+end
+
+local state = new_state()
 
 -- Where the player is in the game world: their tile, or in an instance, the
 -- tile it was copied from. That's the same every time, wherever the game puts
@@ -85,21 +86,22 @@ local function world_tile(player)
         source.z - source.z % copied_block_size + tile.z % copied_block_size
 end
 
--- The boss known by its health bar's name, if the player is still at its
--- fight. Leaving an instance rebuilds the world, which forgets it; outside
--- instances, like at the Chaos Elemental, walking away does.
+-- Keeps track of the boss known by its health bar's name: remembers it while
+-- the bar shows, and forgets it once the player has left its fight. Leaving
+-- an instance rebuilds the world, which forgets it (see on_world_built);
+-- outside instances, like at the Chaos Elemental, walking away does.
 ---@param x integer
 ---@param z integer
----@return integer?
-local function bar_instance_id_now(x, z)
+---@return integer? # The boss's instance id, if the player is still at its fight.
+local function update_bar_boss(x, z)
     local bar_id = world_areas.instance_id_with_bar_name(var.VarClient.ACTIVITY_PROGRESS_BAR_ACTIVE_NAME.value)
     if bar_id then
-        bar_instance_id, bar_x, bar_z = bar_id, x, z
-    elseif bar_instance_id and not World.IsRegion()
-        and (x - bar_x) ^ 2 + (z - bar_z) ^ 2 > leave_fight_distance ^ 2 then
-        bar_instance_id = nil
+        state.bar_instance_id, state.bar_x, state.bar_z = bar_id, x, z
+    elseif state.bar_instance_id and not World.IsRegion()
+        and (x - state.bar_x) ^ 2 + (z - state.bar_z) ^ 2 > leave_fight_distance ^ 2 then
+        state.bar_instance_id = nil
     end
-    return bar_instance_id
+    return state.bar_instance_id
 end
 
 -- The known instance or boss fight the player is in, if any: by
@@ -113,7 +115,7 @@ local function instance_now(x, z)
     local instance_id = World.IsRegion() and var.VarPlayer.BOSS_INSTANCE_CURRENT_BOSS.value or nil
     -- Checked every tick, even when the var is known, so the bar's boss is
     -- kept up to date for when the var goes back to 0.
-    local bar_id = bar_instance_id_now(x, z)
+    local bar_id = update_bar_boss(x, z)
     if world_areas.instance_with_id(instance_id) == nil then
         instance_id = bar_id
     end
@@ -129,7 +131,7 @@ end
 -- out of the lookup, so a bigger place around one shows instead.
 ---@param place WorldPlace
 ---@return boolean
-local function place_counts(place)
+local function is_place_wanted(place)
     return db.get_show_kind("places") and not db.is_area_hidden(place.name)
 end
 
@@ -137,7 +139,7 @@ end
 -- they don't are still tracked, since places use their names as subtitles.
 ---@param kingdom WorldKingdom
 ---@return boolean
-local function kingdom_shown(kingdom)
+local function is_kingdom_wanted(kingdom)
     return db.get_show_kind("kingdoms") and not db.is_area_hidden(kingdom.name)
 end
 
@@ -147,66 +149,65 @@ end
 ---@param area WorldInstance|WorldPlace|WorldKingdom
 ---@param subtitle string?
 local function show(area, subtitle)
-    local last_shown = shown_at[area]
+    local last_shown = state.shown_at[area]
     local repeat_ticks = db.get_repeat_minutes() * ticks_per_minute
-    if not arrived_by_teleport and last_shown and tick - last_shown < repeat_ticks then
+    if not state.arrived_by_teleport and last_shown and state.tick - last_shown < repeat_ticks then
         return
     end
-    shown_at[area] = tick
+    state.shown_at[area] = state.tick
     area_title.show(area.name, subtitle, area.sprite)
 end
 
--- Known instances come first, then places, then kingdoms. Leaving a place on
--- its own shows nothing.
+-- The areas the player is in at this tile. A place or kingdom just left
+-- still counts while the player is near its edge (see leave_margin).
+---@param x integer
+---@param z integer
+---@return Whereabouts
+local function whereabouts(x, z)
+    local before = state.where
+    local place = world_areas.place_at(x, z, is_place_wanted)
+    if (place == nil and before.place ~= nil and is_place_wanted(before.place)
+        and world_areas.is_near_place(before.place, x, z, leave_margin)) then
+        place = before.place
+    end
+    local kingdom = world_areas.kingdom_at(x, z)
+    if (kingdom ~= before.kingdom and before.kingdom ~= nil
+        and world_areas.distance_outside(before.kingdom, x, z) <= leave_margin) then
+        kingdom = before.kingdom
+    end
+    return { instance = instance_now(x, z), place = place, kingdom = kingdom }
+end
+
+-- Runs every game tick: shows the title of an area the player has come into
+-- (see area_choice for which).
 local function on_tick()
-    tick = tick + 1
+    state.tick = state.tick + 1
     local player = Player.GetEntity()
-    if (player == nil or not in_game or not World.IsAvailable()) then
+    if (player == nil or not state.in_game or not World.IsAvailable()) then
         return
     end
     local x, z = world_tile(player)
     if (x == nil) then
         return
     end
-    if (last_x ~= nil and (x - last_x) ^ 2 + (z - last_z) ^ 2 > teleport_distance ^ 2) then
+    if (state.last_x ~= nil and (x - state.last_x) ^ 2 + (z - state.last_z) ^ 2 > teleport_distance ^ 2) then
         area_title.fade_away()
-        ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
-        arrived_by_teleport = true
+        state.ticks_until_titles = math.max(state.ticks_until_titles, db.get_teleport_delay_ticks())
+        state.arrived_by_teleport = true
     end
-    last_x, last_z = x, z
-    if ticks_until_titles > 0 then
-        ticks_until_titles = ticks_until_titles - 1
+    state.last_x, state.last_z = x, z
+    if state.ticks_until_titles > 0 then
+        state.ticks_until_titles = state.ticks_until_titles - 1
         return
     end
 
-    local instance = instance_now(x, z)
-    local place = world_areas.place_at(x, z, place_counts)
-    if (place == nil and current_place ~= nil and place_counts(current_place)
-        and world_areas.is_near_place(current_place, x, z, leave_margin)) then
-        place = current_place
+    local where = whereabouts(x, z)
+    local area, subtitle = area_choice.newly_entered(where, state.where, is_kingdom_wanted)
+    if area then
+        show(area, subtitle)
     end
-    local kingdom = world_areas.kingdom_at(x, z)
-    -- Still in the kingdom just left while near its edge. Only for outlines, as
-    -- that's what distance_outside measures.
-    if (kingdom ~= current_kingdom and current_kingdom ~= nil and current_kingdom.points
-        and world_areas.distance_outside(current_kingdom, x, z) <= leave_margin) then
-        kingdom = current_kingdom
-    end
-
-    if (instance ~= nil and current_instance ~= instance) then
-        show(instance, instance.subtitle)
-    elseif (instance == nil and place ~= nil and current_place ~= place) then
-        -- The place's own subtitle, or the kingdom it's in.
-        show(place, place.subtitle or (kingdom and kingdom.name))
-    elseif (instance == nil and place == nil and kingdom ~= nil and current_kingdom ~= kingdom
-        and kingdom_shown(kingdom)) then
-        show(kingdom, nil)
-    end
-
-    current_instance = instance
-    current_place = place
-    current_kingdom = kingdom
-    arrived_by_teleport = false
+    state.where = where
+    state.arrived_by_teleport = false
 end
 
 -- Titles wait while the game isn't being played, like during a loading
@@ -217,20 +218,15 @@ end
 ---@param event GameStateChangedEventPayload
 local function on_game_state_changed(event)
     if (event.newState == GameState.GAME) then
-        in_game = true
-        ticks_until_titles = math.max(ticks_until_titles, after_loading_delay_ticks)
+        state.in_game = true
+        state.ticks_until_titles = math.max(state.ticks_until_titles, after_loading_delay_ticks)
     else
-        in_game = false
+        state.in_game = false
         area_title.hide()
     end
     if (event.newState == GameState.LOBBY or event.newState == GameState.LOGINSCREEN) then
-        current_instance = nil
-        current_place = nil
-        current_kingdom = nil
-        bar_instance_id = nil
-        shown_at = {}
-        last_x, last_z = nil, nil
-        ticks_until_titles = login_delay_ticks
+        state = new_state()
+        state.in_game = false
     end
 end
 
@@ -238,38 +234,28 @@ end
 -- that's showing fades away, and titles wait until it's over. A boss known by
 -- its health bar is forgotten, as this may be another instance.
 local function on_world_built()
-    bar_instance_id = nil
+    state.bar_instance_id = nil
     area_title.fade_away()
-    ticks_until_titles = math.max(ticks_until_titles, db.get_teleport_delay_ticks())
-    arrived_by_teleport = true
+    state.ticks_until_titles = math.max(state.ticks_until_titles, db.get_teleport_delay_ticks())
+    state.arrived_by_teleport = true
 end
 
--- The title for where the player is now, as it shows when walking in: the
--- known instance, or the place (with its own subtitle, or its kingdom), or
--- the kingdom. Nothing outside every area.
+-- The title for where the player is now, as it shows when walking in (see
+-- area_choice.title_of). Nothing outside every area.
 ---@return string? name
 ---@return string? subtitle
 ---@return string? sprite
 function world_tracker.current_title()
-    if current_instance then
-        return current_instance.name, current_instance.subtitle, current_instance.sprite, nil
-    end
-    if current_place then
-        return current_place.name, current_place.subtitle or (current_kingdom and current_kingdom.name),
-            current_place.sprite, nil
-    end
-    if current_kingdom then
-        return current_kingdom.name, nil, current_kingdom.sprite
-    end
-    return nil
+    return area_choice.title_of(state.where)
 end
 
 -- The boss fight the player is in, by name, or nil when they aren't in one
 -- (heists don't count).
 ---@return string?
 function world_tracker.current_boss()
-    if current_instance and not current_instance.heist then
-        return current_instance.name
+    local instance = state.where.instance
+    if instance and not instance.heist then
+        return instance.name
     end
     return nil
 end
@@ -298,6 +284,7 @@ function world_tracker.stop()
     Event.GameStateChanged.Unsubscribe(game_state_subscription)
     Event.WorldCreated.Unsubscribe(world_built_subscription)
     Event.RegionCreated.Unsubscribe(world_built_subscription)
+    state = new_state()
 end
 
 return world_tracker
